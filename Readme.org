@@ -1,0 +1,20 @@
+#+TITLE: Spotlight --- Never lose your cursor again
+
+This is a global minor-mode.  Turn it on everywhere with:
+#+BEGIN_SRC emacs-lisp
+(spotlight-mode 1)
+#+END_SRC
+
+Whenever point moves a long distance (as defined by
+~spotlight-minimum-distance~) a light will shine on top of your cursor
+to make sure you see where it is.
+
+- To customize the appearance of the spotlight, configure
+  ~spotlight-size~ and ~spotlight-brightness~.
+
+- To customize how long it lasts, configure ~spotlight-blink-duration~
+  and ~spotlight-blink-delay~.
+
+- To customize when it is used at all, configure
+  ~spotlight-minimum-distance~ and
+  ~spotlight-blink-when-buffer-changes~.
