@@ -138,7 +138,7 @@ Only returns `beacon-size' elements."
   (beacon--shine)
   (setq beacon--timer
         (run-at-time beacon-blink-delay
-                     (/ beacon-blink-duration 1.0 (length beacon--colors))
+                     (/ beacon-blink-duration 1.0 beacon-size)
                      #'beacon--dec)))
 
 
