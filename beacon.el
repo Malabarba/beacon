@@ -94,6 +94,25 @@ e.g. \"#666600\"."
     (overlay-put ov 'beacon t)
     (push ov beacon--ovs)))
 
+(defun beacon--ov-put-after-string (overlay colors)
+  "Add an after-string property to OVERLAY.
+The property's value is a string of spaces with background
+COLORS applied to each one."
+  (overlay-put overlay 'beacon-colors colors)
+  (overlay-put overlay 'after-string
+               (mapconcat (lambda (c) (propertize " " 'face (list :background c)))
+                          colors
+                          "")))
+
+(defun beacon--after-string-overlay (colors)
+  "Put an overlay at point with an after-string property.
+The property's value is a string of spaces with background
+COLORS applied to each one."
+  (let ((ov (make-overlay (point) (point))))
+    (beacon--ov-put-after-string ov colors)
+    (overlay-put ov 'beacon t)
+    (push ov beacon--ovs)))
+
 (defun beacon--ov-at-point ()
   (car (cl-member-if (lambda (o) (overlay-get o 'beacon))
                      (overlays-at (point)))))
@@ -138,7 +157,7 @@ Only returns `beacon-size' elements."
       (while colors
         (if (looking-at "$")
             (progn
-              ;; (beacon--after-string)
+              (beacon--after-string-overlay colors)
               (setq colors nil))
           (beacon--colored-overlay (pop colors))
           (forward-char 1))))))
@@ -152,7 +171,12 @@ Only returns `beacon-size' elements."
       (save-excursion
         (while (progn (forward-char 1)
                       (setq o (beacon--ov-at-point)))
-          (move-overlay o (1- (point)) (point)))))))
+          (let ((colors (overlay-get o 'beacon-colors)))
+            (if (not colors)
+                (move-overlay o (1- (point)) (point))
+              (forward-char -1)
+              (beacon--colored-overlay (pop colors))
+              (beacon--ov-put-after-string o colors))))))))
 
 (defun beacon-blink ()
   "Blink the beacon at the position of the cursor."
