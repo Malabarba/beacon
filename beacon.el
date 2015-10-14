@@ -158,10 +158,22 @@ Only returns `beacon-size' elements."
 (defvar beacon--previous-window-start nil)
 (defvar beacon--previous-mark-head nil)
 
+(defun beacon--movement-> (delta)
+  "Return non-nil if latest point movement is > DELTA.
+If DELTA is nil, return nil."
+  (and delta
+       (equal (marker-buffer beacon--previous-place)
+              (current-buffer))
+       (> (abs (- (point) beacon--previous-place))
+          delta)
+       (> (count-screen-lines (min (point) beacon--previous-place)
+                              (max (point) beacon--previous-place))
+          delta)))
+
 (defun beacon--maybe-push-mark ()
   "Push mark if it seems to be safe."
-  (when (and beacon-push-mark
-             (not mark-active))
+  (when (and (not mark-active)
+             (beacon--movement-> beacon-push-mark))
     (let ((head (car mark-ring)))
       (when (and (eq beacon--previous-mark-head head)
                  (not (equal head beacon--previous-place)))
@@ -182,18 +194,13 @@ Only returns `beacon-size' elements."
    ((and beacon-blink-when-window-scrolls
          (progn (redisplay)
                 (not (equal beacon--previous-window-start (window-start)))))
-    (beacon--maybe-push-mark)
     (beacon-blink))
    ;; Blink for movement
-   ((and beacon-blink-when-point-moves
-         (> (abs (- (point) beacon--previous-place))
-            beacon-blink-when-point-moves)
-         (> (count-screen-lines (min (point) beacon--previous-place)
-                                (max (point) beacon--previous-place))))
-    (beacon--maybe-push-mark)
+   ((beacon--movement-> beacon-blink-when-point-moves)
     (beacon-blink))
    ;; Even if we don't blink, vanish any previous beacon.
    (t (beacon--vanish)))
+  (beacon--maybe-push-mark)
   (unless (window-minibuffer-p)
     (setq beacon--previous-window-start (window-start))
     (setq beacon--previous-mark-head (car mark-ring))
