@@ -36,16 +36,23 @@
 
 (defvar beacon--timer nil)
 
-(defcustom beacon-minimum-distance 15
-  "Minimum movement distance in lines to blink the beacon."
-  :type 'integer)
-
 (defcustom beacon-push-mark nil
   "Should the mark be pushed before long movements?"
   :type 'boolean)
 
+(defcustom beacon-blink-when-point-moves nil
+  "Should the beacon blink when changing buffer?
+If nil, don't blink due to plain movement.
+If non-nil, this should be an integer, which is the minimum
+movement distance (in lines) that triggers a beacon blink."
+  :type '(choice integer (const nil)))
+
 (defcustom beacon-blink-when-buffer-changes t
   "Should the beacon blink when changing buffer?"
+  :type 'boolean)
+
+(defcustom beacon-blink-when-window-scrolls t
+  "Should the beacon blink when the window scrolls?"
   :type 'boolean)
 
 (defcustom beacon-blink-duration 0.3
@@ -60,7 +67,7 @@
   "Size of the beacon in characters."
   :type 'number)
 
-(defcustom beacon-brightness 0.5
+(defcustom beacon-brightness 0.4
   "Brightness as a float between 0 and 1."
   :type 'number)
 
@@ -144,6 +151,7 @@ Only returns `beacon-size' elements."
 
 ;;; Movement detection
 (defvar beacon--previous-place nil)
+(defvar beacon--previous-window-start nil)
 (defvar beacon--previous-mark-head nil)
 
 (defun beacon--maybe-push-mark ()
@@ -166,17 +174,24 @@ Only returns `beacon-size' elements."
     (when beacon-blink-when-buffer-changes
       (unless (window-minibuffer-p)
         (beacon-blink))))
-   ;; Blink for distance movement
-   ((and (> (abs (- (point) beacon--previous-place))
-            beacon-minimum-distance)
+   ;; Blink for scrolling.
+   ((and beacon-blink-when-window-scrolls
+         (progn (redisplay)
+                (not (equal beacon--previous-window-start (window-start)))))
+    (beacon--maybe-push-mark)
+    (beacon-blink))
+   ;; Blink for movement
+   ((and beacon-blink-when-point-moves
+         (> (abs (- (point) beacon--previous-place))
+            beacon-blink-when-point-moves)
          (> (count-screen-lines (min (point) beacon--previous-place)
-                                (max (point) beacon--previous-place))
-            beacon-minimum-distance))
+                                (max (point) beacon--previous-place))))
     (beacon--maybe-push-mark)
     (beacon-blink))
    ;; Even if we don't blink, vanish any previous beacon.
    (t (beacon--vanish)))
   (unless (window-minibuffer-p)
+    (setq beacon--previous-window-start (window-start))
     (setq beacon--previous-mark-head (car mark-ring))
     (setq beacon--previous-place (point-marker))))
 
