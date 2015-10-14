@@ -98,11 +98,15 @@ e.g. \"#666600\"."
   "Add an after-string property to OVERLAY.
 The property's value is a string of spaces with background
 COLORS applied to each one."
-  (overlay-put overlay 'beacon-colors colors)
-  (overlay-put overlay 'after-string
-               (mapconcat (lambda (c) (propertize " " 'face (list :background c)))
-                          colors
-                          "")))
+  (if (not colors)
+      (delete-overlay overlay)
+    (overlay-put overlay 'beacon-colors colors)
+    (overlay-put overlay 'after-string
+                 (propertize
+                  (mapconcat (lambda (c) (propertize " " 'face (list :background c)))
+                             colors
+                             "")
+                  'cursor 1000))))
 
 (defun beacon--after-string-overlay (colors)
   "Put an overlay at point with an after-string property.
@@ -114,8 +118,10 @@ COLORS applied to each one."
     (push ov beacon--ovs)))
 
 (defun beacon--ov-at-point ()
-  (car (cl-member-if (lambda (o) (overlay-get o 'beacon))
-                     (overlays-at (point)))))
+  (car (or (cl-member-if (lambda (o) (overlay-get o 'beacon))
+                         (overlays-in (point) (point)))
+           (cl-member-if (lambda (o) (overlay-get o 'beacon))
+                         (overlays-at (point))))))
 
 (defun beacon--vanish ()
   "Turn off the beacon."
@@ -164,19 +170,22 @@ Only returns `beacon-size' elements."
 
 (defun beacon--dec ()
   "Decrease the beacon brightness by one."
-  (let ((o (beacon--ov-at-point)))
-    (if (not o)
-        (beacon--vanish)
-      (delete-overlay o)
-      (save-excursion
-        (while (progn (forward-char 1)
-                      (setq o (beacon--ov-at-point)))
-          (let ((colors (overlay-get o 'beacon-colors)))
-            (if (not colors)
-                (move-overlay o (1- (point)) (point))
-              (forward-char -1)
-              (beacon--colored-overlay (pop colors))
-              (beacon--ov-put-after-string o colors))))))))
+  (pcase (beacon--ov-at-point)
+    (`nil (beacon--vanish))
+    ((and o (let c (overlay-get o 'beacon-colors)) (guard c))
+     (beacon--ov-put-after-string o (cdr c)))
+    (o
+     (delete-overlay o)
+     (save-excursion
+       (while (progn (forward-char 1)
+                     (setq o (beacon--ov-at-point)))
+         (let ((colors (overlay-get o 'beacon-colors)))
+           (if (not colors)
+               (move-overlay o (1- (point)) (point))
+             (forward-char -1)
+             (beacon--colored-overlay (pop colors))
+             (beacon--ov-put-after-string o colors)
+             (forward-char 1))))))))
 
 (defun beacon-blink ()
   "Blink the beacon at the position of the cursor."
