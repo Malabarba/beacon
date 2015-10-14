@@ -71,9 +71,17 @@ movement distance (in lines) that triggers a beacon blink."
   "Size of the beacon in characters."
   :type 'number)
 
-(defcustom beacon-brightness 0.4
-  "Brightness as a float between 0 and 1."
-  :type 'number)
+(defcustom beacon-color 0.5
+  "Color of the beacon.
+This can be a string or a number.
+
+If it is a number, the color is taken to be white or
+black (depending on the current theme's background) and this
+number is a float between 0 and 1 specifing the brightness.
+
+If it is a string, it is a color name or specification,
+e.g. \"#666600\"."
+  :type '(choice number color))
 
 
 ;;; Overlays
@@ -110,12 +118,16 @@ Only returns `beacon-size' elements."
 
 (defun beacon--color-range ()
   "Return a list of background colors for the beacon."
-  (let ((bg (color-values (face-attribute 'default :background))))
-    (apply #'cl-mapcar (lambda (r g b) (format "#%04x%04x%04x" r g b))
-           (if (< (color-distance "black" bg)
+  (let* ((bg (color-values (face-attribute 'default :background)))
+         (fg (cond
+              ((stringp beacon-color) (color-values beacon-color))
+              ((< (color-distance "black" bg)
                   (color-distance "white" bg))
-               (mapcar (lambda (n) (butlast (beacon--int-range (* beacon-brightness 65535) n))) bg)
-             (mapcar (lambda (n) (cdr (beacon--int-range (* (- 1 beacon-brightness) 65535) n))) bg)))))
+               (make-list 3 (* beacon-color 65535)))
+              (t (make-list 3 (* (- 1 beacon-color) 65535))))))
+    (apply #'cl-mapcar (lambda (r g b) (format "#%04x%04x%04x" r g b))
+           (mapcar (lambda (n) (butlast (beacon--int-range (elt fg n) (elt bg n))))
+                   [0 1 2]))))
 
 
 ;;; Blinking
