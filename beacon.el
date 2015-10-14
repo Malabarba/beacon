@@ -3,6 +3,7 @@
 ;; Copyright (C) 2015  Artur Malabarba
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
+;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
 ;; Version: 0.1
 ;; Package-Requires: ((cl-lib "0.5"))
