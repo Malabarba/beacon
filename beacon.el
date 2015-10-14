@@ -38,11 +38,14 @@
 (defvar beacon--timer nil)
 
 (defcustom beacon-push-mark nil
-  "Should the mark be pushed before long movements?"
-  :type 'boolean)
+  "Should the mark be pushed before long movements?
+If nil, `beacon' will not push the mark.
+Otherwise this should be a number, and `beacon' will push the
+mark whenever point moves more than that many lines."
+  :type '(choice integer (const nil)))
 
 (defcustom beacon-blink-when-point-moves nil
-  "Should the beacon blink when changing buffer?
+  "Should the beacon blink when moving a long distance?
 If nil, don't blink due to plain movement.
 If non-nil, this should be an integer, which is the minimum
 movement distance (in lines) that triggers a beacon blink."
@@ -64,7 +67,7 @@ movement distance (in lines) that triggers a beacon blink."
   "Time, in seconds, before starting to fade the beacon."
   :type 'number)
 
-(defcustom beacon-size 30
+(defcustom beacon-size 40
   "Size of the beacon in characters."
   :type 'number)
 
