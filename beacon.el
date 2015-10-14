@@ -246,9 +246,9 @@ If DELTA is nil, return nil."
 
 ;;; Minor-mode
 (defcustom beacon-lighter (cond
-                     ((char-displayable-p ?💡) "💡")
-                     ((char-displayable-p ?Λ) "Λ")
-                     (t "*"))
+                     ((char-displayable-p ?💡) " 💡")
+                     ((char-displayable-p ?Λ) " Λ")
+                     (t " *"))
   "Lighter string used on the mode-line."
   :type 'string)
 
