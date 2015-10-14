@@ -198,6 +198,7 @@ Only returns `beacon-size' elements."
   "Return non-nil if latest point movement is > DELTA.
 If DELTA is nil, return nil."
   (and delta
+       (markerp beacon--previous-place)
        (equal (marker-buffer beacon--previous-place)
               (current-buffer))
        (> (abs (- (point) beacon--previous-place))
