@@ -243,9 +243,9 @@ If DELTA is nil, return nil."
         (beacon-blink))))
    ;; Blink for scrolling.
    ((and beacon-blink-when-window-scrolls
-         beacon--window-scrolled)
-    (with-selected-window beacon--window-scrolled
-      (beacon-blink))
+         beacon--window-scrolled
+         (equal beacon--window-scrolled (selected-window)))
+    (beacon-blink)
     (setq beacon--window-scrolled nil))
    ;; Blink for movement
    ((beacon--movement-> beacon-blink-when-point-moves)
