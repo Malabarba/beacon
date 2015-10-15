@@ -262,10 +262,11 @@ If DELTA is nil, return nil."
 
 
 ;;; Minor-mode
-(defcustom beacon-lighter (cond
-                     ((char-displayable-p ?💡) " 💡")
-                     ((char-displayable-p ?Λ) " Λ")
-                     (t " *"))
+(defcustom beacon-lighter
+  (cond
+   ((char-displayable-p ?💡) " 💡")
+   ((char-displayable-p ?Λ) " Λ")
+   (t " *"))
   "Lighter string used on the mode-line."
   :type 'string)
 
@@ -275,8 +276,8 @@ If DELTA is nil, return nil."
   :global t
   (if beacon-mode
       (progn
-	(add-hook 'window-scroll-functions #'beacon--window-scroll-function)
-	(add-hook 'post-command-hook #'beacon--post-command))
+        (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
+        (add-hook 'post-command-hook #'beacon--post-command))
     (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
     (remove-hook 'post-command-hook #'beacon--post-command)))
 
