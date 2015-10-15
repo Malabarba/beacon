@@ -6,7 +6,7 @@
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
 ;; Version: 0.1
-;; Package-Requires: ((cl-lib "0.5"))
+;; Package-Requires: ((cl-lib "0.5") (seq "1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 
 (defgroup beacon nil
   "Customization group for beacon."
@@ -104,7 +105,7 @@ COLORS applied to each one."
     (overlay-put overlay 'after-string
                  (propertize
                   (mapconcat (lambda (c) (propertize " " 'face (list :background c)))
-                             colors
+			     colors
                              "")
                   'cursor 1000))))
 
@@ -112,7 +113,12 @@ COLORS applied to each one."
   "Put an overlay at point with an after-string property.
 The property's value is a string of spaces with background
 COLORS applied to each one."
-  (let ((ov (make-overlay (point) (point))))
+  (let ((ov (make-overlay (point) (point)))
+	;; The after-string must not be longer than the remaining columns from
+	;; point to right window-end else it will be wrapped around (assuming
+	;; truncate-lines is nil) introducing an ugly wrap-around for a
+	;; fraction of a second.
+	(colors (seq-take colors (- (window-width) (current-column)))))
     (beacon--ov-put-after-string ov colors)
     (overlay-put ov 'beacon t)
     (push ov beacon--ovs)))
