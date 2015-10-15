@@ -288,23 +288,18 @@ If DELTA is nil, return nil."
   (cond
    ((not (markerp beacon--previous-place))
     (beacon--vanish))
-   ;; Blink because we changed buffer.
-   ((not (equal (marker-buffer beacon--previous-place)
-                (current-buffer)))
-    (when beacon-blink-when-buffer-changes
-      (beacon-blink)))
    ;; Blink for scrolling.
    ((and beacon-blink-when-window-scrolls
          beacon--window-scrolled
          (equal beacon--window-scrolled (selected-window)))
-    (beacon-blink)
-    (setq beacon--window-scrolled nil))
+    (beacon-blink))
    ;; Blink for movement
    ((beacon--movement-> beacon-blink-when-point-moves)
     (beacon-blink))
    ;; Even if we don't blink, vanish any previous beacon.
    (t (beacon--vanish)))
   (beacon--maybe-push-mark)
+  (setq beacon--window-scrolled nil)
   (unless (window-minibuffer-p)
     (setq beacon--previous-mark-head (car mark-ring))
     (setq beacon--previous-place (point-marker))))
@@ -320,6 +315,7 @@ If invoked outside the command loop, `post-command-hook' would be
 unreliable, so just blink immediately."
   (if this-command
       (setq beacon--window-scrolled win)
+    (setq beacon--window-scrolled nil)
     (beacon-blink)))
 
 
