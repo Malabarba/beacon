@@ -1,6 +1,6 @@
 ;;; beacon.el --- Highlight the cursor whenever it moves long distances  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Artur Malabarba
+;; Copyright (C) 2015 Free Software Foundation, Inc.
 
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
