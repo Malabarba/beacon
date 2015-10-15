@@ -218,11 +218,12 @@ Only returns `beacon-size' elements."
   "Blink the beacon at the position of the cursor."
   (interactive)
   (beacon--vanish)
-  (beacon--shine)
-  (setq beacon--timer
-        (run-at-time beacon-blink-delay
-                     (/ beacon-blink-duration 1.0 beacon-size)
-                     #'beacon--dec)))
+  (unless (window-minibuffer-p)
+    (beacon--shine)
+    (setq beacon--timer
+          (run-at-time beacon-blink-delay
+                       (/ beacon-blink-duration 1.0 beacon-size)
+                       #'beacon--dec))))
 
 
 ;;; Movement detection
@@ -261,8 +262,7 @@ If DELTA is nil, return nil."
    ((not (equal (marker-buffer beacon--previous-place)
                 (current-buffer)))
     (when beacon-blink-when-buffer-changes
-      (unless (window-minibuffer-p)
-        (beacon-blink))))
+      (beacon-blink)))
    ;; Blink for scrolling.
    ((and beacon-blink-when-window-scrolls
          beacon--window-scrolled
