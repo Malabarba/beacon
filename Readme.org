@@ -12,6 +12,8 @@ on top of your cursor so you know where it is.
 
 That’s it.
 
+** Customizations
+
 - To customize the appearance of the beacon, configure
   ~beacon-size~ and ~beacon-color~.
 

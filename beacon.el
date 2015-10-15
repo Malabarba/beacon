@@ -23,8 +23,30 @@
 
 ;;; Commentary:
 
-;; This is a global minor-mode.  Turn it on everywhere with
-;;     (beacon-mode 1)
+;; This is a global minor-mode. Turn it on everywhere with:
+;; ┌────
+;; │ (beacon-mode 1)
+;; └────
+;;
+;; Whenever the window scrolls or the buffer changes a light will shine on
+;; top of your cursor so you know where it is.
+;;
+;; That’s it.
+;;
+;;
+;; 1 Customizations
+;; ════════════════
+;;
+;;   • To customize the appearance of the beacon, configure `beacon-size'
+;;     and `beacon-color'.
+;;
+;;   • To customize how long it lasts, configure `beacon-blink-duration'
+;;       and `beacon-blink-delay'.
+;;
+;;   • To customize /when/ it is used at all, configure
+;;     `beacon-blink-when-window-scrolls',
+;;     `beacon-blink-when-buffer-changes', and
+;;     `beacon-blink-when-point-moves'.
 
 ;;; Code:
 
