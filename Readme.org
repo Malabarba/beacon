@@ -5,16 +5,20 @@ This is a global minor-mode.  Turn it on everywhere with:
 (beacon-mode 1)
 #+END_SRC
 
-Whenever point moves a long distance (as defined by
-~beacon-minimum-distance~) a light will shine on top of your cursor
-to make sure you see where it is.
+[[file:example-beacon.gif]]
+
+Whenever the window scrolls or the buffer changes a light will shine
+on top of your cursor so you know where it is.
+
+That’s it.
 
 - To customize the appearance of the beacon, configure
-  ~beacon-size~ and ~beacon-brightness~.
+  ~beacon-size~ and ~beacon-color~.
 
 - To customize how long it lasts, configure ~beacon-blink-duration~
   and ~beacon-blink-delay~.
 
-- To customize when it is used at all, configure
-  ~beacon-minimum-distance~ and
-  ~beacon-blink-when-buffer-changes~.
+- To customize /when/ it is used at all, configure
+  ~beacon-blink-when-window-scrolls~,
+  ~beacon-blink-when-buffer-changes~, and
+  ~beacon-blink-when-point-moves~.
