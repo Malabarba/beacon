@@ -105,6 +105,23 @@ If it is a string, it is a color name or specification,
 e.g. \"#666600\"."
   :type '(choice number color))
 
+(defcustom beacon-dont-blink-predicates nil
+  "A list of predicates that prevent the beacon blink.
+These predicate functions are called in order, with no
+arguments, before blinking the beacon.  If any returns
+non-nil, the beacon will not blink."
+  :type 'hook)
+
+(add-hook 'beacon-dont-blink-predicates (lambda () (bound-and-true-p hl-line-mode)))
+(add-hook 'beacon-dont-blink-predicates #'window-minibuffer-p)
+
+(defcustom beacon-dont-blink-major-modes nil
+  "A list of major-modes where the beacon won't blink.
+Whenever the current buffer satisfies `derived-mode-p' for
+one of the major-modes on this list, the beacon will not
+blink."
+  :type '(repeat symbol))
+
 
 ;;; Overlays
 (defvar beacon--ovs nil)
@@ -119,10 +136,13 @@ e.g. \"#666600\"."
 (defun beacon--ov-put-after-string (overlay colors)
   "Add an after-string property to OVERLAY.
 The property's value is a string of spaces with background
-COLORS applied to each one."
+COLORS applied to each one.
+If COLORS is nil, OVERLAY is deleted!"
   (if (not colors)
-      (delete-overlay overlay)
+      (when (overlayp overlay)
+        (delete-overlay overlay))
     (overlay-put overlay 'beacon-colors colors)
+    (overlay-put overlay 'priority most-positive-fixnum)
     (overlay-put overlay 'after-string
                  (propertize
                   (mapconcat (lambda (c) (propertize " " 'face (list :background c)))
@@ -218,7 +238,9 @@ Only returns `beacon-size' elements."
   "Blink the beacon at the position of the cursor."
   (interactive)
   (beacon--vanish)
-  (unless (window-minibuffer-p)
+  (unless (or (not beacon-mode)
+              (run-hook-with-args-until-success 'beacon-dont-blink-predicates)
+              (seq-find #'derived-mode-p beacon-dont-blink-major-modes))
     (beacon--shine)
     (setq beacon--timer
           (run-at-time beacon-blink-delay
@@ -309,9 +331,11 @@ unreliable, so just blink immediately."
   (if beacon-mode
       (progn
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
-        (add-hook 'post-command-hook #'beacon--post-command))
+        (add-hook 'post-command-hook #'beacon--post-command)
+        (add-hook 'pre-command-hook #'beacon--vanish))
     (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
-    (remove-hook 'post-command-hook #'beacon--post-command)))
+    (remove-hook 'post-command-hook #'beacon--post-command)
+    (remove-hook 'pre-command-hook #'beacon--vanish)))
 
 (provide 'beacon)
 ;;; beacon.el ends here
