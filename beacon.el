@@ -6,7 +6,7 @@
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
 ;; Version: 0.1
-;; Package-Requires: ((cl-lib "0.5") (seq "1.9"))
+;; Package-Requires: ((seq "1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'seq)
 
 (defgroup beacon nil
@@ -105,7 +104,7 @@ COLORS applied to each one."
     (overlay-put overlay 'after-string
                  (propertize
                   (mapconcat (lambda (c) (propertize " " 'face (list :background c)))
-			     colors
+                             colors
                              "")
                   'cursor 1000))))
 
@@ -114,20 +113,20 @@ COLORS applied to each one."
 The property's value is a string of spaces with background
 COLORS applied to each one."
   (let ((ov (make-overlay (point) (point)))
-	;; The after-string must not be longer than the remaining columns from
-	;; point to right window-end else it will be wrapped around (assuming
-	;; truncate-lines is nil) introducing an ugly wrap-around for a
-	;; fraction of a second.
-	(colors (seq-take colors (- (window-width) (current-column)))))
+        ;; The after-string must not be longer than the remaining columns from
+        ;; point to right window-end else it will be wrapped around (assuming
+        ;; truncate-lines is nil) introducing an ugly wrap-around for a
+        ;; fraction of a second.
+        (colors (seq-take colors (- (window-width) (current-column)))))
     (beacon--ov-put-after-string ov colors)
     (overlay-put ov 'beacon t)
     (push ov beacon--ovs)))
 
 (defun beacon--ov-at-point ()
-  (car (or (cl-member-if (lambda (o) (overlay-get o 'beacon))
-                         (overlays-in (point) (point)))
-           (cl-member-if (lambda (o) (overlay-get o 'beacon))
-                         (overlays-at (point))))))
+  (car (or (seq-filter (lambda (o) (overlay-get o 'beacon))
+                     (overlays-in (point) (point)))
+           (seq-filter (lambda (o) (overlay-get o 'beacon))
+                     (overlays-at (point))))))
 
 (defun beacon--vanish ()
   "Turn off the beacon."
