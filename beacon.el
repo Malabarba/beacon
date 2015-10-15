@@ -134,12 +134,24 @@ blink."
 ;;; Overlays
 (defvar beacon--ovs nil)
 
+(defconst beacon-overlay-priority (/ most-positive-fixnum 2)
+  "Priotiy used on all of our overlays.")
+
+(defun beacon--make-overlay (length &rest properties)
+  "Put an overlay at point with background COLOR."
+  (let ((ov (make-overlay (point) (+ length (point)))))
+    (overlay-put ov 'beacon t)
+    ;; Our overlay is very temporary, so we take the liberty of giving
+    ;; it a high priority.
+    (overlay-put ov 'priority beacon-overlay-priority)
+    (while properties
+      (overlay-put ov (pop properties) (pop properties)))
+    (push ov beacon--ovs)
+    ov))
+
 (defun beacon--colored-overlay (color)
   "Put an overlay at point with background COLOR."
-  (let ((ov (make-overlay (point) (1+ (point)))))
-    (overlay-put ov 'face (list :background color))
-    (overlay-put ov 'beacon t)
-    (push ov beacon--ovs)))
+  (beacon--make-overlay 1 'face (list :background color)))
 
 (defun beacon--ov-put-after-string (overlay colors)
   "Add an after-string property to OVERLAY.
@@ -150,7 +162,6 @@ If COLORS is nil, OVERLAY is deleted!"
       (when (overlayp overlay)
         (delete-overlay overlay))
     (overlay-put overlay 'beacon-colors colors)
-    (overlay-put overlay 'priority most-positive-fixnum)
     (overlay-put overlay 'after-string
                  (propertize
                   (mapconcat (lambda (c) (propertize " " 'face (list :background c)))
@@ -162,15 +173,10 @@ If COLORS is nil, OVERLAY is deleted!"
   "Put an overlay at point with an after-string property.
 The property's value is a string of spaces with background
 COLORS applied to each one."
-  (let ((ov (make-overlay (point) (point)))
-        ;; The after-string must not be longer than the remaining columns from
-        ;; point to right window-end else it will be wrapped around (assuming
-        ;; truncate-lines is nil) introducing an ugly wrap-around for a
-        ;; fraction of a second.
-        (colors (seq-take colors (- (window-width) (current-column)))))
-    (beacon--ov-put-after-string ov colors)
-    (overlay-put ov 'beacon t)
-    (push ov beacon--ovs)))
+  ;; The after-string must not be longer than the remaining columns
+  ;; from point to right window-end else it will be wrapped around.
+  (let ((colors (seq-take colors (- (window-width) (current-column)))))
+    (beacon--ov-put-after-string (beacon--make-overlay 0) colors)))
 
 (defun beacon--ov-at-point ()
   (car (or (seq-filter (lambda (o) (overlay-get o 'beacon))
