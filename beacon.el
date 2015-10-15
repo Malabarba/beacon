@@ -258,7 +258,17 @@ If DELTA is nil, return nil."
     (setq beacon--previous-place (point-marker))))
 
 (defun beacon--window-scroll-function (win _start-pos)
-  (setq beacon--window-scrolled win))
+  "Blink the beacon or record that window has been scrolled.
+If invoked during the command loop, record the current window so
+that it may be blinked on post-command.  This is because the
+scrolled window might not be active, but we only know that at
+`post-command-hook'.
+
+If invoked outside the command loop, `post-command-hook' would be
+unreliable, so just blink immediately."
+  (if this-command
+      (setq beacon--window-scrolled win)
+    (beacon-blink)))
 
 
 ;;; Minor-mode
