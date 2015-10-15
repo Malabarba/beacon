@@ -205,8 +205,8 @@ Only returns `beacon-size' elements."
 
 
 ;;; Movement detection
+(defvar beacon--window-scrolled nil)
 (defvar beacon--previous-place nil)
-(defvar beacon--previous-window-start nil)
 (defvar beacon--previous-mark-head nil)
 
 (defun beacon--movement-> (delta)
@@ -244,9 +244,10 @@ If DELTA is nil, return nil."
         (beacon-blink))))
    ;; Blink for scrolling.
    ((and beacon-blink-when-window-scrolls
-         (progn (redisplay)
-                (not (equal beacon--previous-window-start (window-start)))))
-    (beacon-blink))
+         beacon--window-scrolled)
+    (with-selected-window beacon--window-scrolled
+      (beacon-blink))
+    (setq beacon--window-scrolled nil))
    ;; Blink for movement
    ((beacon--movement-> beacon-blink-when-point-moves)
     (beacon-blink))
@@ -254,16 +255,18 @@ If DELTA is nil, return nil."
    (t (beacon--vanish)))
   (beacon--maybe-push-mark)
   (unless (window-minibuffer-p)
-    (setq beacon--previous-window-start (window-start))
     (setq beacon--previous-mark-head (car mark-ring))
     (setq beacon--previous-place (point-marker))))
+
+(defun beacon--window-scroll-function (win _start-pos)
+  (setq beacon--window-scrolled win))
 
 
 ;;; Minor-mode
 (defcustom beacon-lighter (cond
-                     ((char-displayable-p ?💡) " 💡")
-                     ((char-displayable-p ?Λ) " Λ")
-                     (t " *"))
+			   ((char-displayable-p ?💡) " 💡")
+			   ((char-displayable-p ?Λ) " Λ")
+			   (t " *"))
   "Lighter string used on the mode-line."
   :type 'string)
 
@@ -272,7 +275,10 @@ If DELTA is nil, return nil."
   nil nil beacon-lighter nil
   :global t
   (if beacon-mode
-      (add-hook 'post-command-hook #'beacon--post-command)
+      (progn
+	(add-hook 'window-scroll-functions #'beacon--window-scroll-function)
+	(add-hook 'post-command-hook #'beacon--post-command))
+    (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
     (remove-hook 'post-command-hook #'beacon--post-command)))
 
 (provide 'beacon)
