@@ -45,6 +45,7 @@
 ;;
 ;;   • To customize /when/ the beacon should blink at all, configure
 ;;     `beacon-blink-when-window-scrolls',
+;;     `beacon-blink-when-window-changes',
 ;;     `beacon-blink-when-buffer-changes', and
 ;;     `beacon-blink-when-point-moves'.
 ;;
@@ -87,6 +88,10 @@ movement distance (in lines) that triggers a beacon blink."
 
 (defcustom beacon-blink-when-window-scrolls t
   "Should the beacon blink when the window scrolls?"
+  :type 'boolean)
+
+(defcustom beacon-blink-when-window-changes t
+  "Should the beacon blink when the window changes?"
   :type 'boolean)
 
 (defcustom beacon-blink-duration 0.3
@@ -144,6 +149,7 @@ blink."
     ;; Our overlay is very temporary, so we take the liberty of giving
     ;; it a high priority.
     (overlay-put ov 'priority beacon-overlay-priority)
+    (overlay-put ov 'window (selected-window))
     (while properties
       (overlay-put ov (pop properties) (pop properties)))
     (push ov beacon--ovs)
@@ -266,6 +272,7 @@ Only returns `beacon-size' elements."
 (defvar beacon--window-scrolled nil)
 (defvar beacon--previous-place nil)
 (defvar beacon--previous-mark-head nil)
+(defvar beacon--previous-window nil)
 
 (defun beacon--movement-> (delta)
   "Return non-nil if latest point movement is > DELTA.
@@ -294,6 +301,10 @@ If DELTA is nil, return nil."
   (cond
    ((not (markerp beacon--previous-place))
     (beacon--vanish))
+   ;; Blink for switching windows.
+   ((and beacon-blink-when-window-changes
+	 (not (eq beacon--previous-window (selected-window))))
+    (beacon-blink))
    ;; Blink for scrolling.
    ((and beacon-blink-when-window-scrolls
          beacon--window-scrolled
@@ -308,7 +319,8 @@ If DELTA is nil, return nil."
   (setq beacon--window-scrolled nil)
   (unless (window-minibuffer-p)
     (setq beacon--previous-mark-head (car mark-ring))
-    (setq beacon--previous-place (point-marker))))
+    (setq beacon--previous-place (point-marker))
+    (setq beacon--previous-window (selected-window))))
 
 (defun beacon--window-scroll-function (win _start-pos)
   "Blink the beacon or record that window has been scrolled.
