@@ -127,7 +127,7 @@ non-nil, the beacon will not blink."
 (add-hook 'beacon-dont-blink-predicates (lambda () (bound-and-true-p hl-line-mode)))
 (add-hook 'beacon-dont-blink-predicates #'window-minibuffer-p)
 
-(defcustom beacon-dont-blink-major-modes nil
+(defcustom beacon-dont-blink-major-modes '(magit-status-mode)
   "A list of major-modes where the beacon won't blink.
 Whenever the current buffer satisfies `derived-mode-p' for
 one of the major-modes on this list, the beacon will not
