@@ -33,28 +33,7 @@
 ;;
 ;; That’s it.
 ;;
-;;
-;; 1 Customizations
-;; ════════════════
-;;
-;;   • The appearance of the beacon is configured by `beacon-size' and
-;;     `beacon-color'.
-;;
-;;   • The duration is configured by `beacon-blink-duration' and
-;;     `beacon-blink-delay'.
-;;
-;;   • To customize /when/ the beacon should blink at all, configure
-;;     `beacon-blink-when-window-scrolls',
-;;     `beacon-blink-when-window-changes', and
-;;     `beacon-blink-when-point-moves'.
-;;
-;;   • To prevent the beacon from blinking only on some major-modes,
-;;     configure `beacon-dont-blink-major-modes'. For specific buffers, you
-;;     can do `(setq-local beacon-mode nil)'. For even more refined
-;;     control, configure `beacon-dont-blink-predicates'
-;;
-;;   • Beacon can also push the mark for you whenever point moves a long
-;;     distance. For this, configure `beacon-push-mark'.
+;; See the accompanying Readme.org for configuration details.
 
 ;;; Code:
 
