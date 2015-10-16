@@ -32,3 +32,9 @@ That’s it.
 
 - Beacon can also push the mark for you whenever point moves a long
   distance. For this, configure ~beacon-push-mark~.
+
+** Contributors
+
+- [[https://github.com/tsdh][Tassilo Horn]]
+
+If you’d like to help too, just open a PR.
