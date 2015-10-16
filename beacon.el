@@ -134,6 +134,13 @@ one of the major-modes on this list, the beacon will not
 blink."
   :type '(repeat symbol))
 
+(defcustom beacon-dont-blink-commands '(recenter-top-bottom)
+  "A list of commands that should not make the beacon blink.
+Use this for commands that scroll the window in very
+predictable ways, when the blink would be more distracting
+than helpful.."
+  :type '(repeat symbol))
+
 
 ;;; Overlays
 (defvar beacon--ovs nil)
@@ -259,7 +266,8 @@ Only returns `beacon-size' elements."
   (beacon--vanish)
   (unless (or (not beacon-mode)
               (run-hook-with-args-until-success 'beacon-dont-blink-predicates)
-              (seq-find #'derived-mode-p beacon-dont-blink-major-modes))
+              (seq-find #'derived-mode-p beacon-dont-blink-major-modes)
+              (memq (or this-command last-command) beacon-dont-blink-commands))
     (beacon--shine)
     (setq beacon--timer
           (run-at-time beacon-blink-delay
