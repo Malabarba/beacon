@@ -28,8 +28,8 @@
 ;; │ (beacon-mode 1)
 ;; └────
 ;;
-;; Whenever the window scrolls or you switch buffer a light will shine on
-;; top of your cursor so you know where it is.
+;; Whenever the window scrolls a light will shine on top of your cursor so
+;; you know where it is.
 ;;
 ;; That’s it.
 ;;
@@ -45,8 +45,7 @@
 ;;
 ;;   • To customize /when/ the beacon should blink at all, configure
 ;;     `beacon-blink-when-window-scrolls',
-;;     `beacon-blink-when-window-changes',
-;;     `beacon-blink-when-buffer-changes', and
+;;     `beacon-blink-when-window-changes', and
 ;;     `beacon-blink-when-point-moves'.
 ;;
 ;;   • To prevent the beacon from blinking only on some major-modes,
