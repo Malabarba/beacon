@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.1
+;; Version: 0.1.1
 ;; Package-Requires: ((seq "1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -100,10 +100,15 @@ e.g. \"#666600\"."
   "A list of predicates that prevent the beacon blink.
 These predicate functions are called in order, with no
 arguments, before blinking the beacon.  If any returns
-non-nil, the beacon will not blink."
+non-nil, the beacon will not blink.
+
+For instance, if you want to disable beacon on buffers where
+`hl-line-mode' is on, you can do:
+
+    (add-hook 'beacon-dont-blink-predicates
+              (lambda () (bound-and-true-p hl-line-mode)))"
   :type 'hook)
 
-(add-hook 'beacon-dont-blink-predicates (lambda () (bound-and-true-p hl-line-mode)))
 (add-hook 'beacon-dont-blink-predicates #'window-minibuffer-p)
 
 (defcustom beacon-dont-blink-major-modes '(magit-status-mode)
