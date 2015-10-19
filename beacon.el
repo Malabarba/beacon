@@ -46,7 +46,7 @@
 
 (defvar beacon--timer nil)
 
-(defcustom beacon-push-mark nil
+(defcustom beacon-push-mark 35
   "Should the mark be pushed before long movements?
 If nil, `beacon' will not push the mark.
 Otherwise this should be a number, and `beacon' will push the
