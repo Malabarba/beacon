@@ -96,7 +96,7 @@ If it is a string, it is a color name or specification,
 e.g. \"#666600\"."
   :type '(choice number color))
 
-(defcustom beacon-dont-blink-predicates nil
+(defvar beacon-dont-blink-predicates nil
   "A list of predicates that prevent the beacon blink.
 These predicate functions are called in order, with no
 arguments, before blinking the beacon.  If any returns
@@ -105,9 +105,8 @@ non-nil, the beacon will not blink.
 For instance, if you want to disable beacon on buffers where
 `hl-line-mode' is on, you can do:
 
-    (add-hook 'beacon-dont-blink-predicates
-              (lambda () (bound-and-true-p hl-line-mode)))"
-  :type 'hook)
+    (add-hook \\='beacon-dont-blink-predicates
+              (lambda () (bound-and-true-p hl-line-mode)))")
 
 (add-hook 'beacon-dont-blink-predicates #'window-minibuffer-p)
 
