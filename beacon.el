@@ -358,3 +358,7 @@ unreliable, so just blink immediately."
 
 (provide 'beacon)
 ;;; beacon.el ends here
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
