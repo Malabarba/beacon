@@ -264,6 +264,12 @@ Only returns `beacon-size' elements."
 (defvar beacon--previous-mark-head nil)
 (defvar beacon--previous-window nil)
 
+(defun beacon--pos-on-current-line-p (pos)
+  "Return non-nil if POS is on the current line."
+  (<= (save-excursion (beginning-of-line) (point))
+      pos
+      (save-excursion (end-of-line) (point))))
+
 (defun beacon--movement-> (delta)
   "Return non-nil if latest point movement is > DELTA.
 If DELTA is nil, return nil."
@@ -273,9 +279,21 @@ If DELTA is nil, return nil."
               (current-buffer))
        (> (abs (- (point) beacon--previous-place))
           delta)
-       (> (count-screen-lines (min (point) beacon--previous-place)
-                              (max (point) beacon--previous-place))
-          delta)))
+       ;; Check if the movement was larger than DELTA lines by testing if
+       ;; `point' is still on the same line or on any line DELTA lines up or
+       ;; down.  This is much cheaper than computing the actual number of lines
+       ;; moved using `count-screen-lines'.
+       (let ((prev-pos (marker-position beacon--previous-place)))
+	 (catch 'movement
+	   (when (beacon--pos-on-current-line-p (point))
+	     (throw 'movement nil))
+	   (dolist (inc '(1 -1))
+	     (save-excursion
+	       (dotimes (i delta)
+		 (vertical-motion inc)
+		 (when (beacon--pos-on-current-line-p (point))
+		   (throw 'movement nil)))))
+	   (throw 'movement t)))))
 
 (defun beacon--maybe-push-mark ()
   "Push mark if it seems to be safe."
