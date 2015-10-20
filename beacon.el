@@ -350,8 +350,10 @@ unreliable, so just blink immediately."
   (if beacon-mode
       (progn
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
+        (add-hook 'focus-in-hook #'beacon-blink)
         (add-hook 'post-command-hook #'beacon--post-command)
         (add-hook 'pre-command-hook #'beacon--vanish))
+    (remove-hook 'focus-in-hook #'beacon-blink)
     (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
     (remove-hook 'post-command-hook #'beacon--post-command)
     (remove-hook 'pre-command-hook #'beacon--vanish)))
