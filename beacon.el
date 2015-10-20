@@ -266,9 +266,8 @@ Only returns `beacon-size' elements."
 
 (defun beacon--pos-on-current-line-p (pos)
   "Return non-nil if POS is on the current line."
-  (<= (save-excursion (beginning-of-line) (point))
-      pos
-      (save-excursion (end-of-line) (point))))
+  (and (<= (save-excursion (beginning-of-line) (point)) pos)
+       (<= pos (save-excursion (end-of-line) (point)))))
 
 (defun beacon--movement-> (delta)
   "Return non-nil if latest point movement is > DELTA.
