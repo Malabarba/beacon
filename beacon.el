@@ -284,13 +284,13 @@ If DELTA is nil, return nil."
        ;; moved using `count-screen-lines'.
        (let ((prev-pos (marker-position beacon--previous-place)))
 	 (catch 'movement
-	   (when (beacon--pos-on-current-line-p (point))
+	   (when (beacon--pos-on-current-line-p prev-pos)
 	     (throw 'movement nil))
 	   (dolist (inc '(1 -1))
 	     (save-excursion
 	       (dotimes (i delta)
 		 (vertical-motion inc)
-		 (when (beacon--pos-on-current-line-p (point))
+		 (when (beacon--pos-on-current-line-p prev-pos)
 		   (throw 'movement nil)))))
 	   (throw 'movement t)))))
 
