@@ -279,10 +279,11 @@ If DELTA is nil, return nil."
        ;; lines. `count-screen-lines' is too slow if the movement had
        ;; thousands of lines.
        (save-excursion
-         (goto-char (min beacon--previous-place (point)))
-         (vertical-motion delta)
-         (> (max (point) beacon--previous-place)
-            (line-beginning-position)))))
+         (let ((p (point)))
+           (goto-char (min beacon--previous-place p))
+           (vertical-motion delta)
+           (> (max p beacon--previous-place)
+              (line-beginning-position))))))
 
 (defun beacon--maybe-push-mark ()
   "Push mark if it seems to be safe."
