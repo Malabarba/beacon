@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.2
+;; Version: 0.2.1
 ;; Package-Requires: ((seq "1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -350,9 +350,9 @@ unreliable, so just blink immediately."
 ;;; Minor-mode
 (defcustom beacon-lighter
   (cond
-   ((char-displayable-p ?💡) " 💡")
-   ((char-displayable-p ?Λ) " Λ")
-   (t " *"))
+   ;; ((char-displayable-p ?💡) " 💡")
+   ;; ((char-displayable-p ?Λ) " Λ")
+   (t " (*)"))
   "Lighter string used on the mode-line."
   :type 'string)
 
