@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.1.1
+;; Version: 0.2
 ;; Package-Requires: ((seq "1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -71,6 +71,13 @@ movement distance (in lines) that triggers a beacon blink."
 (defcustom beacon-blink-when-window-changes t
   "Should the beacon blink when the window changes?"
   :type 'boolean)
+
+(defcustom beacon-blink-when-focused nil
+  "Should the beacon blink when Emacs gains focus?
+Note that, due to a limitation of `focus-in-hook', this might
+trigger false positives on some systems."
+  :type 'boolean
+  :package-version '(beacon . "0.2"))
 
 (defcustom beacon-blink-duration 0.3
   "Time, in seconds, that the blink should last."
@@ -334,6 +341,11 @@ unreliable, so just blink immediately."
     (setq beacon--window-scrolled nil)
     (beacon-blink)))
 
+(defun beacon--blink-on-focus ()
+  "Blink if `beacon-blink-when-focused' is non-nil"
+  (when beacon-blink-when-focused
+    (beacon-blink)))
+
 
 ;;; Minor-mode
 (defcustom beacon-lighter
@@ -351,10 +363,10 @@ unreliable, so just blink immediately."
   (if beacon-mode
       (progn
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
-        (add-hook 'focus-in-hook #'beacon-blink)
+        (add-hook 'focus-in-hook #'beacon--blink-on-focus)
         (add-hook 'post-command-hook #'beacon--post-command)
         (add-hook 'pre-command-hook #'beacon--vanish))
-    (remove-hook 'focus-in-hook #'beacon-blink)
+    (remove-hook 'focus-in-hook #'beacon--blink-on-focus)
     (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
     (remove-hook 'post-command-hook #'beacon--post-command)
     (remove-hook 'pre-command-hook #'beacon--vanish)))
