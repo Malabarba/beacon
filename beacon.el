@@ -132,6 +132,21 @@ than helpful.."
   :type '(repeat symbol))
 
 
+;;; Internal variables
+(defvar beacon--window-scrolled nil)
+(defvar beacon--previous-place nil)
+(defvar beacon--previous-mark-head nil)
+(defvar beacon--previous-window nil)
+(defvar beacon--previous-window-start 0)
+
+(defun beacon--record-vars ()
+  (unless (window-minibuffer-p)
+    (setq beacon--previous-mark-head (car mark-ring))
+    (setq beacon--previous-place (point-marker))
+    (setq beacon--previous-window (selected-window))
+    (setq beacon--previous-window-start (window-start))))
+
+
 ;;; Overlays
 (defvar beacon--ovs nil)
 
@@ -254,6 +269,9 @@ Only returns `beacon-size' elements."
   "Blink the beacon at the position of the cursor."
   (interactive)
   (beacon--vanish)
+  ;; Record vars here in case something is blinking outside the
+  ;; command loop.
+  (beacon--record-vars)
   (unless (or (not beacon-mode)
               (run-hook-with-args-until-success 'beacon-dont-blink-predicates)
               (seq-find #'derived-mode-p beacon-dont-blink-major-modes)
@@ -266,11 +284,6 @@ Only returns `beacon-size' elements."
 
 
 ;;; Movement detection
-(defvar beacon--window-scrolled nil)
-(defvar beacon--previous-place nil)
-(defvar beacon--previous-mark-head nil)
-(defvar beacon--previous-window nil)
-
 (defun beacon--movement-> (delta)
   "Return non-nil if latest point movement is > DELTA.
 If DELTA is nil, return nil."
@@ -308,7 +321,7 @@ If DELTA is nil, return nil."
     (beacon--vanish))
    ;; Blink for switching windows.
    ((and beacon-blink-when-window-changes
-	 (not (eq beacon--previous-window (selected-window))))
+         (not (eq beacon--previous-window (selected-window))))
     (beacon-blink))
    ;; Blink for scrolling.
    ((and beacon-blink-when-window-scrolls
@@ -321,11 +334,7 @@ If DELTA is nil, return nil."
    ;; Even if we don't blink, vanish any previous beacon.
    (t (beacon--vanish)))
   (beacon--maybe-push-mark)
-  (setq beacon--window-scrolled nil)
-  (unless (window-minibuffer-p)
-    (setq beacon--previous-mark-head (car mark-ring))
-    (setq beacon--previous-place (point-marker))
-    (setq beacon--previous-window (selected-window))))
+  (setq beacon--window-scrolled nil))
 
 (defun beacon--window-scroll-function (win _start-pos)
   "Blink the beacon or record that window has been scrolled.
@@ -365,10 +374,12 @@ unreliable, so just blink immediately."
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
         (add-hook 'focus-in-hook #'beacon--blink-on-focus)
         (add-hook 'post-command-hook #'beacon--post-command)
+        (add-hook 'pre-command-hook #'beacon--record-vars)
         (add-hook 'pre-command-hook #'beacon--vanish))
     (remove-hook 'focus-in-hook #'beacon--blink-on-focus)
     (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
     (remove-hook 'post-command-hook #'beacon--post-command)
+    (remove-hook 'pre-command-hook #'beacon--record-vars)
     (remove-hook 'pre-command-hook #'beacon--vanish)))
 
 (provide 'beacon)
