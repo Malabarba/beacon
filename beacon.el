@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.2.1
+;; Version: 0.3
 ;; Package-Requires: ((seq "1.9"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -336,7 +336,7 @@ If DELTA is nil, return nil."
   (beacon--maybe-push-mark)
   (setq beacon--window-scrolled nil))
 
-(defun beacon--window-scroll-function (win _start-pos)
+(defun beacon--window-scroll-function (win start-pos)
   "Blink the beacon or record that window has been scrolled.
 If invoked during the command loop, record the current window so
 that it may be blinked on post-command.  This is because the
@@ -345,10 +345,12 @@ scrolled window might not be active, but we only know that at
 
 If invoked outside the command loop, `post-command-hook' would be
 unreliable, so just blink immediately."
-  (if this-command
-      (setq beacon--window-scrolled win)
-    (setq beacon--window-scrolled nil)
-    (beacon-blink)))
+  (unless (and (equal beacon--previous-window-start start-pos)
+               (equal beacon--previous-window win))
+    (if this-command
+        (setq beacon--window-scrolled win)
+      (setq beacon--window-scrolled nil)
+      (beacon-blink))))
 
 (defun beacon--blink-on-focus ()
   "Blink if `beacon-blink-when-focused' is non-nil"
