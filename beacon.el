@@ -53,11 +53,18 @@ Otherwise this should be a number, and `beacon' will push the
 mark whenever point moves more than that many lines."
   :type '(choice integer (const nil)))
 
-(defcustom beacon-blink-when-point-moves nil
-  "Should the beacon blink when moving a long distance?
-If nil, don't blink due to plain movement.
+(defcustom beacon-blink-when-point-moves-vertically nil
+  "Should the beacon blink when moving a long distance vertically?
+If nil, don't blink due to vertical movement.
 If non-nil, this should be an integer, which is the minimum
 movement distance (in lines) that triggers a beacon blink."
+  :type '(choice integer (const nil)))
+
+(defcustom beacon-blink-when-point-moves-horizontally nil
+  "Should the beacon blink when moving a long distance horizontally?
+If nil, don't blink due to horizontal movement.
+If non-nil, this should be an integer, which is the minimum
+movement distance (in columns) that triggers a beacon blink."
   :type '(choice integer (const nil)))
 
 (defcustom beacon-blink-when-buffer-changes t
@@ -294,26 +301,34 @@ Only returns `beacon-size' elements."
 
 
 ;;; Movement detection
-(defun beacon--movement-> (delta)
-  "Return non-nil if latest point movement is > DELTA.
-If DELTA is nil, return nil."
-  (and delta
+(defun beacon--movement-> (delta-y &optional delta-x)
+  "Return non-nil if latest vertical movement is > DELTA-Y.
+If DELTA-Y is nil, return nil.
+The same is true for DELTA-X and horizonta movement."
+  (and delta-y
        (markerp beacon--previous-place)
        (equal (marker-buffer beacon--previous-place)
               (current-buffer))
        ;; Quick check that prevents running the code below in very
        ;; short movements (like typing).
        (> (abs (- (point) beacon--previous-place))
-          delta)
-       ;; Check if the movement was >= DELTA lines by moving DELTA
-       ;; lines. `count-screen-lines' is too slow if the movement had
-       ;; thousands of lines.
-       (save-excursion
-         (let ((p (point)))
-           (goto-char (min beacon--previous-place p))
-           (vertical-motion delta)
-           (> (max p beacon--previous-place)
-              (line-beginning-position))))))
+          delta-y)
+       ;; Col movement.
+       (or (and delta-x
+                (> (abs (- (current-column)
+                           (save-excursion
+                             (goto-char beacon--previous-place)
+                             (current-column))))
+                   delta-x))
+           ;; Check if the movement was >= DELTA lines by moving DELTA
+           ;; lines. `count-screen-lines' is too slow if the movement had
+           ;; thousands of lines.
+           (save-excursion
+             (let ((p (point)))
+               (goto-char (min beacon--previous-place p))
+               (vertical-motion delta-y)
+               (> (max p beacon--previous-place)
+                  (line-beginning-position)))))))
 
 (defun beacon--maybe-push-mark ()
   "Push mark if it seems to be safe."
@@ -338,7 +353,8 @@ If DELTA is nil, return nil."
          (equal beacon--window-scrolled (selected-window)))
     (beacon-blink))
    ;; Blink for movement
-   ((beacon--movement-> beacon-blink-when-point-moves)
+   ((beacon--movement-> beacon-blink-when-point-moves-vertically
+                  beacon-blink-when-point-moves-horizontally)
     (beacon-blink))
    ;; Even if we don't blink, vanish any previous beacon.
    (t (beacon--vanish)))
