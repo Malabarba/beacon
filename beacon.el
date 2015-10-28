@@ -44,13 +44,6 @@
   :group 'emacs
   :prefix "beacon-")
 
-(defface beacon-fallback
-  '((((class color) (background light))
-     (:background "black"))
-    (((class color) (background dark))
-     (:background "white")))
-  "Fallback background color")
-
 (defvar beacon--timer nil)
 
 (defcustom beacon-push-mark 35
@@ -109,6 +102,13 @@ number is a float between 0 and 1 specifing the brightness.
 If it is a string, it is a color name or specification,
 e.g. \"#666600\"."
   :type '(choice number color))
+
+(defface beacon-fallback-background
+  '((((class color) (background light)) (:background "black"))
+    (((class color) (background dark)) (:background "white")))
+  "Fallback beacon background color.
+Used in cases where the color can't be determined by Emacs.
+Only the background of this face is used.")
 
 (defvar beacon-dont-blink-predicates nil
   "A list of predicates that prevent the beacon blink.
@@ -229,8 +229,8 @@ Only returns `beacon-size' elements."
 (defun beacon--color-range ()
   "Return a list of background colors for the beacon."
   (let* ((default-bg (face-attribute 'default :background))
-         (bg (color-values (if (string-prefix-p "unspecified" default-bg)
-                               (face-attribute 'beacon-fallback :background)
+         (bg (color-values (if (string-match "\\`unspecified-" default-bg)
+                               (face-attribute 'beacon-fallback-background :background)
                              default-bg)))
          (fg (cond
               ((stringp beacon-color) (color-values beacon-color))
