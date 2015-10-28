@@ -54,11 +54,17 @@ mark whenever point moves more than that many lines."
   :type '(choice integer (const nil)))
 
 (defcustom beacon-blink-when-point-moves nil
-  "Should the beacon blink when moving a long distance?
+  "Should the beacon blink when moving a long distance vertically ?
 If nil, don't blink due to plain movement.
 If non-nil, this should be an integer, which is the minimum
 movement distance (in lines) that triggers a beacon blink."
   :type '(choice integer (const nil)))
+
+(defcustom beacon-blink-when-point-moves-horizontally nil
+  "Should the beacon blink when moving a long distance horizontally too ?
+If nil, don't blink due to plain horizontal movement.
+This requires a non nil `beacon-blink-when-point-moves'."
+  :type 'boolean)
 
 (defcustom beacon-blink-when-buffer-changes t
   "Should the beacon blink when changing buffer?"
@@ -308,12 +314,13 @@ If DELTA is nil, return nil."
        ;; Check if the movement was >= DELTA lines by moving DELTA
        ;; lines. `count-screen-lines' is too slow if the movement had
        ;; thousands of lines.
-       (save-excursion
-         (let ((p (point)))
-           (goto-char (min beacon--previous-place p))
-           (vertical-motion delta)
-           (> (max p beacon--previous-place)
-              (line-beginning-position))))))
+       (or beacon-blink-when-point-moves-horizontally
+           (save-excursion
+             (let ((p (point)))
+               (goto-char (min beacon--previous-place p))
+               (vertical-motion delta)
+               (> (max p beacon--previous-place)
+                  (line-beginning-position)))))))
 
 (defun beacon--maybe-push-mark ()
   "Push mark if it seems to be safe."
