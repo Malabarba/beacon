@@ -6,7 +6,7 @@
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
 ;; Version: 0.3
-;; Package-Requires: ((seq "1.9"))
+;; Package-Requires: ((seq "1.9") (cl-lib "0.5"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'cl-lib)
 
 (defgroup beacon nil
   "Customization group for beacon."
