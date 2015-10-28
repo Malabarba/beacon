@@ -204,9 +204,9 @@ COLORS applied to each one."
 
 (defun beacon--ov-at-point ()
   (car (or (seq-filter (lambda (o) (overlay-get o 'beacon))
-                     (overlays-in (point) (point)))
+                       (overlays-in (point) (point)))
            (seq-filter (lambda (o) (overlay-get o 'beacon))
-                     (overlays-at (point))))))
+                       (overlays-at (point))))))
 
 (defun beacon--vanish ()
   "Turn off the beacon."
@@ -334,8 +334,7 @@ If DELTA is nil, return nil."
          (not (eq beacon--previous-window (selected-window))))
     (beacon-blink))
    ;; Blink for scrolling.
-   ((and beacon-blink-when-window-scrolls
-         beacon--window-scrolled
+   ((and beacon--window-scrolled
          (equal beacon--window-scrolled (selected-window)))
     (beacon-blink))
    ;; Blink for movement
@@ -355,8 +354,9 @@ scrolled window might not be active, but we only know that at
 
 If invoked outside the command loop, `post-command-hook' would be
 unreliable, so just blink immediately."
-  (unless (and (equal beacon--previous-window-start start-pos)
-               (equal beacon--previous-window win))
+  (unless (or (and (equal beacon--previous-window-start start-pos)
+                   (equal beacon--previous-window win))
+              (not beacon-blink-when-window-scrolls))
     (if this-command
         (setq beacon--window-scrolled win)
       (setq beacon--window-scrolled nil)
