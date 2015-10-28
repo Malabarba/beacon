@@ -44,6 +44,13 @@
   :group 'emacs
   :prefix "beacon-")
 
+(defface beacon-fallback
+  '((((class color) (background light))
+     (:background "black"))
+    (((class color) (background dark))
+     (:background "white")))
+  "Fallback background color")
+
 (defvar beacon--timer nil)
 
 (defcustom beacon-push-mark 35
@@ -221,7 +228,10 @@ Only returns `beacon-size' elements."
 
 (defun beacon--color-range ()
   "Return a list of background colors for the beacon."
-  (let* ((bg (color-values (face-attribute 'default :background)))
+  (let* ((default-bg (face-attribute 'default :background))
+         (bg (color-values (if (string-prefix-p "unspecified" default-bg)
+                               (face-attribute 'beacon-fallback :background)
+                             default-bg)))
          (fg (cond
               ((stringp beacon-color) (color-values beacon-color))
               ((< (color-distance "black" bg)
