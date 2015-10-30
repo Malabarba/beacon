@@ -337,7 +337,7 @@ The same is true for DELTA-X and horizonta movement."
     (let ((head (car mark-ring)))
       (when (and (eq beacon--previous-mark-head head)
                  (not (equal head beacon--previous-place)))
-        (push-mark beacon--previous-place)))))
+        (push-mark beacon--previous-place 'silent)))))
 
 (defun beacon--post-command ()
   "Blink if point moved very far."
