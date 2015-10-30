@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.4
+;; Version: 0.5
 ;; Package-Requires: ((seq "1.11"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,6 +38,7 @@
 ;;; Code:
 
 (require 'seq)
+(require 'faces)
 
 (defgroup beacon nil
   "Customization group for beacon."
@@ -235,7 +236,7 @@ Only returns `beacon-size' elements."
 
 (defun beacon--color-range ()
   "Return a list of background colors for the beacon."
-  (let* ((default-bg (face-attribute 'default :background))
+  (let* ((default-bg (background-color-at-point))
          (bg (color-values (if (string-match "\\`unspecified-" default-bg)
                                (face-attribute 'beacon-fallback-background :background)
                              default-bg)))
