@@ -5,8 +5,8 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.3
-;; Package-Requires: ((seq "1.9") (cl-lib "0.5"))
+;; Version: 0.4
+;; Package-Requires: ((seq "1.11"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -38,7 +38,6 @@
 ;;; Code:
 
 (require 'seq)
-(require 'cl-lib)
 
 (defgroup beacon nil
   "Customization group for beacon."
@@ -246,7 +245,7 @@ Only returns `beacon-size' elements."
                   (color-distance "white" bg))
                (make-list 3 (* beacon-color 65535)))
               (t (make-list 3 (* (- 1 beacon-color) 65535))))))
-    (apply #'cl-mapcar (lambda (r g b) (format "#%04x%04x%04x" r g b))
+    (apply #'seq-mapn (lambda (r g b) (format "#%04x%04x%04x" r g b))
            (mapcar (lambda (n) (butlast (beacon--int-range (elt fg n) (elt bg n))))
                    [0 1 2]))))
 
