@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.5
+;; Version: 0.5.1
 ;; Package-Requires: ((seq "1.11"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -39,6 +39,23 @@
 
 (require 'seq)
 (require 'faces)
+(unless (fboundp 'seq-mapn)
+  ;; This is for people who are on outdated Emacs snapshots. Will be
+  ;; deleted in a couple of weeks.
+  (defun seq-mapn (function sequence &rest sequences)
+    "Like `seq-map' but FUNCTION is mapped over all SEQUENCES.
+The arity of FUNCTION must match the number of SEQUENCES, and the
+mapping stops on the shortest sequence.
+Return a list of the results.
+
+\(fn FUNCTION SEQUENCES...)"
+    (let ((result nil)
+          (sequences (seq-map (lambda (s) (seq-into s 'list))
+                            (cons sequence sequences))))
+      (while (not (memq nil sequences))
+        (push (apply function (seq-map #'car sequences)) result)
+        (setq sequences (seq-map #'cdr sequences)))
+      (nreverse result))))
 
 (defgroup beacon nil
   "Customization group for beacon."
