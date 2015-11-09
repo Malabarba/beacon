@@ -156,7 +156,8 @@ one of the major-modes on this list, the beacon will not
 blink."
   :type '(repeat symbol))
 
-(defcustom beacon-dont-blink-commands '(recenter-top-bottom)
+(defcustom beacon-dont-blink-commands '(recenter-top-bottom next-line previous-line
+                                                      forward-line)
   "A list of commands that should not make the beacon blink.
 Use this for commands that scroll the window in very
 predictable ways, when the blink would be more distracting
