@@ -256,8 +256,9 @@ Only returns `beacon-size' elements."
 (defun beacon--color-range ()
   "Return a list of background colors for the beacon."
   (let* ((default-bg (or (save-excursion
-                           (forward-line 1)
-                           (forward-char -1)
+                           (unless (eobp)
+                             (forward-line 1)
+                             (unless (bobp) (forward-char -1)))
                            (background-color-at-point))
                          (face-background 'default)))
          (bg (color-values (if (string-match "\\`unspecified-" default-bg)
