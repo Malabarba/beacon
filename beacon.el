@@ -258,7 +258,8 @@ Only returns `beacon-size' elements."
   (let* ((default-bg (or (save-excursion
                            (unless (eobp)
                              (forward-line 1)
-                             (unless (bobp) (forward-char -1)))
+                             (unless (or (bobp) (not (bolp)))
+                               (forward-char -1)))
                            (background-color-at-point))
                          (face-background 'default)))
          (bg (color-values (if (string-match "\\`unspecified-" default-bg)
