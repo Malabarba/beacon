@@ -262,7 +262,8 @@ Only returns `beacon-size' elements."
                                (forward-char -1)))
                            (background-color-at-point))
                          (face-background 'default)))
-         (bg (color-values (if (string-match "\\`unspecified-" default-bg)
+         (bg (color-values (if (or (not (stringp default-bg))
+                                   (string-match "\\`unspecified-" default-bg))
                                (face-attribute 'beacon-fallback-background :background)
                              default-bg)))
          (fg (cond
