@@ -266,8 +266,9 @@ Only returns `beacon-size' elements."
                              default-bg)))
          (fg (cond
               ((stringp beacon-color) (color-values beacon-color))
-              ((< (color-distance "black" bg)
-                  (color-distance "white" bg))
+              ((and (stringp bg)
+                    (< (color-distance "black" bg)
+                       (color-distance "white" bg)))
                (make-list 3 (* beacon-color 65535)))
               (t (make-list 3 (* (- 1 beacon-color) 65535))))))
     (apply #'seq-mapn (lambda (r g b) (format "#%04x%04x%04x" r g b))
