@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 0.6
+;; Version: 0.6.1
 ;; Package-Requires: ((seq "1.11"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -310,10 +310,26 @@ Only returns `beacon-size' elements."
              (beacon--ov-put-after-string o colors)
              (forward-char 1))))))))
 
+;;;###autoload
 (defun beacon-blink ()
-  "Blink the beacon at the position of the cursor."
+  "Blink the beacon at the position of the cursor.
+Unlike `beacon-blink-automated', the beacon will blink
+unconditionally (even if `beacon-mode' is disabled), and this can
+be invoked as a user command or called from lisp code."
   (interactive)
   (beacon--vanish)
+  (beacon--shine)
+  (setq beacon--timer
+        (run-at-time beacon-blink-delay
+                     (/ beacon-blink-duration 1.0 beacon-size)
+                     #'beacon--dec)))
+
+(defun beacon-blink-automated ()
+  "If appropriate, blink the beacon at the position of the cursor.
+Unlike `beacon-blink', the blinking is conditioned on a series of
+variables: `beacon-mode', `beacon-dont-blink-commands',
+`beacon-dont-blink-major-modes', and
+`beacon-dont-blink-predicates'."
   ;; Record vars here in case something is blinking outside the
   ;; command loop.
   (beacon--record-vars)
@@ -321,11 +337,7 @@ Only returns `beacon-size' elements."
               (run-hook-with-args-until-success 'beacon-dont-blink-predicates)
               (seq-find #'derived-mode-p beacon-dont-blink-major-modes)
               (memq (or this-command last-command) beacon-dont-blink-commands))
-    (beacon--shine)
-    (setq beacon--timer
-          (run-at-time beacon-blink-delay
-                       (/ beacon-blink-duration 1.0 beacon-size)
-                       #'beacon--dec))))
+    (beacon-blink)))
 
 
 ;;; Movement detection
@@ -375,15 +387,15 @@ The same is true for DELTA-X and horizonta movement."
    ;; Blink for switching windows.
    ((and beacon-blink-when-window-changes
          (not (eq beacon--previous-window (selected-window))))
-    (beacon-blink))
+    (beacon-blink-automated))
    ;; Blink for scrolling.
    ((and beacon--window-scrolled
          (equal beacon--window-scrolled (selected-window)))
-    (beacon-blink))
+    (beacon-blink-automated))
    ;; Blink for movement
    ((beacon--movement-> beacon-blink-when-point-moves-vertically
                   beacon-blink-when-point-moves-horizontally)
-    (beacon-blink)))
+    (beacon-blink-automated)))
   (beacon--maybe-push-mark)
   (setq beacon--window-scrolled nil))
 
@@ -402,12 +414,12 @@ unreliable, so just blink immediately."
     (if this-command
         (setq beacon--window-scrolled win)
       (setq beacon--window-scrolled nil)
-      (beacon-blink))))
+      (beacon-blink-automated))))
 
 (defun beacon--blink-on-focus ()
   "Blink if `beacon-blink-when-focused' is non-nil"
   (when beacon-blink-when-focused
-    (beacon-blink)))
+    (beacon-blink-automated)))
 
 
 ;;; Minor-mode
