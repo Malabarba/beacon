@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 1.0
+;; Version: 1.1
 ;; Package-Requires: ((seq "1.11"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -387,6 +387,11 @@ The same is true for DELTA-X and horizonta movement."
   (cond
    ;; Sanity check.
    ((not (markerp beacon--previous-place)))
+   ;; Blink for switching buffers.
+   ((and beacon-blink-when-buffer-changes
+         (not (eq (marker-buffer beacon--previous-place)
+                  (current-buffer))))
+    (beacon-blink-automated))
    ;; Blink for switching windows.
    ((and beacon-blink-when-window-changes
          (not (eq beacon--previous-window (selected-window))))
