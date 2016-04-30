@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 1.2.1
+;; Version: 1.3.0
 ;; Package-Requires: ((seq "2.14"))
 
 ;; This program is free software; you can redistribute it and/or modify
