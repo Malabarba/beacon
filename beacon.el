@@ -242,10 +242,12 @@ COLORS applied to each one."
 
 (defun beacon--vanish (&rest _)
   "Turn off the beacon."
-  (when (timerp beacon--timer)
-    (cancel-timer beacon--timer))
-  (mapc #'delete-overlay beacon--ovs)
-  (setq beacon--ovs nil))
+  (unless (string-match "\\` \\*\\(temp-buffer\\|Echo Area.*\\)\\*"
+                        (buffer-name))
+    (when (timerp beacon--timer)
+      (cancel-timer beacon--timer))
+    (mapc #'delete-overlay beacon--ovs)
+    (setq beacon--ovs nil)))
 
 
 ;;; Colors
