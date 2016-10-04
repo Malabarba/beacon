@@ -147,7 +147,13 @@ For instance, if you want to disable beacon on buffers where
     (add-hook \\='beacon-dont-blink-predicates
               (lambda () (bound-and-true-p hl-line-mode)))")
 
+(defun beacon--compilation-mode-p ()
+  "Non-nil if this is some form of compilation mode."
+  (or (derived-mode-p 'compilation-mode)
+      (bound-and-true-p compilation-minor-mode)))
+
 (add-hook 'beacon-dont-blink-predicates #'window-minibuffer-p)
+(add-hook 'beacon-dont-blink-predicates #'beacon--compilation-mode-p)
 
 (defcustom beacon-dont-blink-major-modes '(t magit-status-mode magit-popup-mode
                                        inf-ruby-mode
