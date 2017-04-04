@@ -5,7 +5,7 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 1.3.2
+;; Version: 1.3.3
 ;; Package-Requires: ((seq "2.14"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -157,6 +157,7 @@ For instance, if you want to disable beacon on buffers where
 
 (defcustom beacon-dont-blink-major-modes '(t magit-status-mode magit-popup-mode
                                        inf-ruby-mode
+                                       mu4e-headers-mode
                                        gnus-summary-mode gnus-group-mode)
   "A list of major-modes where the beacon won't blink.
 Whenever the current buffer satisfies `derived-mode-p' for
