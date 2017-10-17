@@ -238,7 +238,7 @@ The property's value is a string of spaces with background
 COLORS applied to each one."
   ;; The after-string must not be longer than the remaining columns
   ;; from point to right window-end else it will be wrapped around.
-  (let ((colors (seq-take colors (- (window-width) (current-column)))))
+  (let ((colors (seq-take colors (- (window-width) (current-column) 1))))
     (beacon--ov-put-after-string (beacon--make-overlay 0) colors)))
 
 (defun beacon--ov-at-point ()
