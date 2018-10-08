@@ -336,6 +336,8 @@ be invoked as a user command or called from lisp code."
   (beacon--vanish)
   (run-hooks 'beacon-before-blink-hook)
   (beacon--shine)
+  (when (timerp beacon--timer)
+    (cancel-timer beacon--timer))
   (setq beacon--timer
         (run-at-time beacon-blink-delay
                      (/ beacon-blink-duration 1.0 beacon-size)
