@@ -302,15 +302,30 @@ Only returns `beacon-size' elements."
 ;;; Blinking
 (defun beacon--shine ()
   "Shine a beacon at point."
-  (let ((colors (beacon--color-range)))
+  ;; if there is enough space we go forward, else backward
+  ;; Available space is:
+  ;;    (last-column - current column) + (window-width - last-column-position)
+  (let* ((colors (beacon--color-range))
+         (end (save-excursion (end-of-line) (current-column)))
+         (available (+ (- end (current-column))
+                       (- (window-body-width)
+                          (mod end (window-body-width)))))
+         (forward (if (> available beacon-size)
+                      t
+                    nil)))
     (save-excursion
       (while colors
-        (if (looking-at "$")
-            (progn
-              (beacon--after-string-overlay colors)
-              (setq colors nil))
-          (beacon--colored-overlay (pop colors))
-          (forward-char 1))))))
+        (if forward
+            (if (looking-at "$")
+                (progn
+                  (beacon--after-string-overlay colors)
+                  (setq colors nil))
+              (beacon--colored-overlay (pop colors))
+              (forward-char))
+          (if (looking-at "$")
+              (beacon--after-string-overlay (list (pop colors)))
+            (beacon--colored-overlay (pop colors)))
+          (backward-char))))))
 
 (defun beacon--dec ()
   "Decrease the beacon brightness by one."
