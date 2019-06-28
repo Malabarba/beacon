@@ -116,6 +116,11 @@ trigger false positives on some systems."
   "Size of the beacon in characters."
   :type 'number)
 
+(defcustom beacon-can-go-backwards t
+  "If set, beacon animation will go backward if there is not
+  enough space at the end of the line to display it."
+  :type 'boolean)
+
 (defcustom beacon-color 0.5
   "Color of the beacon.
 This can be a string or a number.
@@ -310,7 +315,8 @@ Only returns `beacon-size' elements."
          (available (+ (- end (current-column))
                        (- (window-body-width)
                           (mod end (window-body-width)))))
-         (forward (if (> available beacon-size)
+         (forward (if (or (not beacon-can-go-backwards)
+                       (> available beacon-size))
                       t
                     nil)))
     (save-excursion
