@@ -233,7 +233,9 @@ If COLORS is nil, OVERLAY is deleted!"
                   'cursor 1000))))
 
 (defun beacon--visual-current-column ()
-  "Get the visual column we are at, takes long lines and visual line mode into account."
+  "Get the visual column we are at.
+
+Takes long lines and visual line mode into account."
   (save-excursion
     (let ((current (point)))
       (beginning-of-visual-line)
@@ -464,17 +466,16 @@ unreliable, so just blink immediately."
 
 ;;;###autoload
 (define-minor-mode beacon-mode
-  nil nil beacon-lighter nil
-  :global t
+  nil :lighter beacon-lighter :global t
   (if beacon-mode
       (progn
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
-        (add-hook 'focus-in-hook #'beacon--blink-on-focus)
+        (add-function :after after-focus-change-function #'beacon--blink-on-focus)
         (add-hook 'post-command-hook #'beacon--post-command)
         (add-hook 'before-change-functions #'beacon--vanish)
         (add-hook 'pre-command-hook #'beacon--record-vars)
         (add-hook 'pre-command-hook #'beacon--vanish))
-    (remove-hook 'focus-in-hook #'beacon--blink-on-focus)
+    (remove-function after-focus-change-function #'beacon--blink-on-focus)
     (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
     (remove-hook 'post-command-hook #'beacon--post-command)
     (remove-hook 'before-change-functions #'beacon--vanish)
