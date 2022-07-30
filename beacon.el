@@ -5,8 +5,8 @@
 ;; Author: Artur Malabarba <emacs@endlessparentheses.com>
 ;; URL: https://github.com/Malabarba/beacon
 ;; Keywords: convenience
-;; Version: 1.3.3
-;; Package-Requires: ((seq "2.14"))
+;; Version: 1.3.4
+;; Package-Requires: ((emacs "25.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This is a global minor-mode. Turn it on everywhere with:
+;; This is a global minor-mode.  Turn it on everywhere with:
 ;; ┌────
 ;; │ (beacon-mode 1)
 ;; └────
@@ -39,10 +39,11 @@
 
 (require 'seq)
 (require 'faces)
-(unless (fboundp 'seq-mapn)
+(if (fboundp 'seq-mapn)
+    (defalias 'beacon--seq-mapn #'seq-mapn)
   ;; This is for people who are on outdated Emacs snapshots. Will be
   ;; deleted in a couple of weeks.
-  (defun seq-mapn (function sequence &rest sequences)
+  (defun beacon--seq-mapn (function sequence &rest sequences)
     "Like `seq-map' but FUNCTION is mapped over all SEQUENCES.
 The arity of FUNCTION must match the number of SEQUENCES, and the
 mapping stops on the shortest sequence.
@@ -51,7 +52,7 @@ Return a list of the results.
 \(fn FUNCTION SEQUENCES...)"
     (let ((result nil)
           (sequences (seq-map (lambda (s) (seq-into s 'list))
-                            (cons sequence sequences))))
+                              (cons sequence sequences))))
       (while (not (memq nil sequences))
         (push (apply function (seq-map #'car sequences)) result)
         (setq sequences (seq-map #'cdr sequences)))
@@ -186,6 +187,7 @@ than helpful.."
 (defvar beacon--previous-window-start 0)
 
 (defun beacon--record-vars ()
+  "Record some variables for interal use."
   (unless (window-minibuffer-p)
     (setq beacon--previous-mark-head (car mark-ring))
     (setq beacon--previous-place (point-marker))
@@ -200,7 +202,9 @@ than helpful.."
   "Priotiy used on all of our overlays.")
 
 (defun beacon--make-overlay (length &rest properties)
-  "Put an overlay at point with background COLOR."
+  "Put an overlay at point over LENGTH columns.
+
+Specify background color in PROPERTIES."
   (let ((ov (make-overlay (point) (+ length (point)))))
     (overlay-put ov 'beacon t)
     ;; Our overlay is very temporary, so we take the liberty of giving
@@ -233,7 +237,9 @@ If COLORS is nil, OVERLAY is deleted!"
                   'cursor 1000))))
 
 (defun beacon--visual-current-column ()
-  "Get the visual column we are at, takes long lines and visual line mode into account."
+  "Get the visual column we are at.
+
+Take long lines and visual line mode into account."
   (save-excursion
     (let ((current (point)))
       (beginning-of-visual-line)
@@ -249,6 +255,7 @@ COLORS applied to each one."
     (beacon--ov-put-after-string (beacon--make-overlay 0) colors)))
 
 (defun beacon--ov-at-point ()
+  "Return beacon overlay at current point."
   (car (or (seq-filter (lambda (o) (overlay-get o 'beacon))
                        (overlays-in (point) (point)))
            (seq-filter (lambda (o) (overlay-get o 'beacon))
@@ -294,7 +301,7 @@ Only returns `beacon-size' elements."
                (make-list 3 (* beacon-color 65535)))
               (t (make-list 3 (* (- 1 beacon-color) 65535))))))
     (when bg
-      (apply #'seq-mapn (lambda (r g b) (format "#%04x%04x%04x" r g b))
+      (apply #'beacon--seq-mapn (lambda (r g b) (format "#%04x%04x%04x" r g b))
              (mapcar (lambda (n) (butlast (beacon--int-range (elt fg n) (elt bg n))))
                      [0 1 2])))))
 
@@ -338,7 +345,7 @@ Only returns `beacon-size' elements."
   "Blink the beacon at the position of the cursor.
 Unlike `beacon-blink-automated', the beacon will blink
 unconditionally (even if `beacon-mode' is disabled), and this can
-be invoked as a user command or called from lisp code."
+be invoked as a user command or called from Lisp code."
   (interactive)
   (beacon--vanish)
   (run-hooks 'beacon-before-blink-hook)
@@ -430,8 +437,8 @@ The same is true for DELTA-X and horizonta movement."
   (beacon--maybe-push-mark)
   (setq beacon--window-scrolled nil))
 
-(defun beacon--window-scroll-function (win start-pos)
-  "Blink the beacon or record that window has been scrolled.
+(defun beacon--window-scroll-function (window start-pos)
+  "Blink the beacon or record that WINDOW has been scrolled.
 If invoked during the command loop, record the current window so
 that it may be blinked on post-command.  This is because the
 scrolled window might not be active, but we only know that at
@@ -440,15 +447,15 @@ scrolled window might not be active, but we only know that at
 If invoked outside the command loop, `post-command-hook' would be
 unreliable, so just blink immediately."
   (unless (or (and (equal beacon--previous-window-start start-pos)
-                   (equal beacon--previous-window win))
+                   (equal beacon--previous-window window))
               (not beacon-blink-when-window-scrolls))
     (if this-command
-        (setq beacon--window-scrolled win)
+        (setq beacon--window-scrolled window)
       (setq beacon--window-scrolled nil)
       (beacon-blink-automated))))
 
 (defun beacon--blink-on-focus ()
-  "Blink if `beacon-blink-when-focused' is non-nil"
+  "Blink if `beacon-blink-when-focused' is non-nil."
   (when beacon-blink-when-focused
     (beacon-blink-automated)))
 
@@ -464,17 +471,18 @@ unreliable, so just blink immediately."
 
 ;;;###autoload
 (define-minor-mode beacon-mode
-  nil nil beacon-lighter nil
+  nil :lighter beacon-lighter
   :global t
   (if beacon-mode
       (progn
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
-        (add-hook 'focus-in-hook #'beacon--blink-on-focus)
+        (add-function :after after-focus-change-function
+                      #'beacon--blink-on-focus)
         (add-hook 'post-command-hook #'beacon--post-command)
         (add-hook 'before-change-functions #'beacon--vanish)
         (add-hook 'pre-command-hook #'beacon--record-vars)
         (add-hook 'pre-command-hook #'beacon--vanish))
-    (remove-hook 'focus-in-hook #'beacon--blink-on-focus)
+    (remove-function after-focus-change-function #'beacon--blink-on-focus)
     (remove-hook 'window-scroll-functions #'beacon--window-scroll-function)
     (remove-hook 'post-command-hook #'beacon--post-command)
     (remove-hook 'before-change-functions #'beacon--vanish)
