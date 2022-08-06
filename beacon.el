@@ -117,6 +117,11 @@ trigger false positives on some systems."
   "Size of the beacon in characters."
   :type 'number)
 
+(defcustom beacon-can-go-backwards t
+  "If set, beacon animation will go backward if there is not
+  enough space at the end of the line to display it."
+  :type 'boolean)
+
 (defcustom beacon-color 0.5
   "Color of the beacon.
 This can be a string or a number.
@@ -309,15 +314,31 @@ Only returns `beacon-size' elements."
 ;;; Blinking
 (defun beacon--shine ()
   "Shine a beacon at point."
-  (let ((colors (beacon--color-range)))
+  ;; if there is enough space we go forward, else backward
+  ;; Available space is:
+  ;;    (last-column - current column) + (window-width - last-column-position)
+  (let* ((colors (beacon--color-range))
+         (end (save-excursion (end-of-line) (current-column)))
+         (available (+ (- end (current-column))
+                       (- (window-body-width)
+                          (mod end (window-body-width)))))
+         (forward (if (or (not beacon-can-go-backwards)
+                       (> available beacon-size))
+                      t
+                    nil)))
     (save-excursion
       (while colors
-        (if (looking-at "$")
-            (progn
-              (beacon--after-string-overlay colors)
-              (setq colors nil))
-          (beacon--colored-overlay (pop colors))
-          (forward-char 1))))))
+        (if forward
+            (if (looking-at "$")
+                (progn
+                  (beacon--after-string-overlay colors)
+                  (setq colors nil))
+              (beacon--colored-overlay (pop colors))
+              (forward-char))
+          (if (looking-at "$")
+              (beacon--after-string-overlay (list (pop colors)))
+            (beacon--colored-overlay (pop colors)))
+          (backward-char))))))
 
 (defun beacon--dec ()
   "Decrease the beacon brightness by one."
