@@ -257,12 +257,13 @@ COLORS applied to each one."
         (move-overlay ov eovl eovl)))
     (beacon--ov-put-after-string ov colors)))
 
-(defun beacon--ov-at-point ()
+(defun beacon--ov-at-point (&optional point)
   "Return beacon overlay at current point."
-  (car (or (seq-filter (lambda (o) (overlay-get o 'beacon))
-                       (overlays-in (point) (point)))
-           (seq-filter (lambda (o) (overlay-get o 'beacon))
-                       (overlays-at (point))))))
+  (let ((point (or point (point))))
+    (car (or (seq-filter (lambda (o) (overlay-get o 'beacon))
+                         (overlays-in point point))
+             (seq-filter (lambda (o) (overlay-get o 'beacon))
+                         (overlays-at point))))))
 
 (defun beacon--vanish (&rest _)
   "Turn off the beacon."
@@ -285,10 +286,11 @@ COLORS applied to each one."
   ;; `selective-display-ellipses' is intentionally not checked because
   ;; I didn't find to be an accurate indicator.
   (inline-quote (and (derived-mode-p 'outline-mode)
+                     (not (eobp))
                      (= (char-after (point)) ?\n)
                      (memq (get-char-property (point) 'invisible)
                            '(org-hide-block outline))
-                     (invisible-p (1+ (point))))))
+                     (not (invisible-p (1- (point)))))))
 
 (defun beacon--selective-display-set-face-at-point (face)
   (or (beacon--selective-display-ellipsis-at-point-p) (error))
@@ -373,6 +375,37 @@ Only returns `beacon-size' elements."
           (beacon--colored-overlay (pop colors))
           (forward-char 1))))))
 
+(defun beacon--toss (o)
+  (move-overlay o (1- (point)) (point)))
+
+(defun beacon--toss-after-string (o)
+  (let ((colors (overlay-get o 'beacon-colors)))
+    (forward-char -1)
+    (beacon--colored-overlay (pop colors))
+    (beacon--ov-put-after-string o colors)
+    (forward-char 1)))
+
+(defun beacon--toss-pre-ellipsis (o)
+  (let* ((before-string (overlay-get o 'before-string))
+         (ellipsis-face (overlay-get o 'face)))
+    (move-overlay
+      (beacon--make-overlay 1
+        'face (get-text-property 0 'face before-string))
+      (1- (point)) (point))
+    (put-text-property 0 (length before-string) 'face nil before-string)))
+
+(defun beacon--toss-on-ellipsis (o)
+  (forward-char -1)
+  (let* ((after-string-ov (save-excursion (end-of-visual-line) (beacon--ov-at-point)))
+         (colors (when after-string-ov (overlay-get after-string-ov 'beacon-colors)))
+         (before-string (overlay-get o 'before-string))
+         (ellipsis-face (overlay-get o 'face)))
+    (put-text-property 0 (length before-string) 'face ellipsis-face before-string)
+    (forward-char 1)
+    (if (not colors)
+        (beacon--selective-display-restore-face-at-point)
+      (beacon--ov-put-after-string after-string-ov (cdr colors)))))
+
 (defun beacon--dec ()
   "Decrease the beacon brightness by one."
   (pcase (beacon--ov-at-point)
@@ -382,43 +415,20 @@ Only returns `beacon-size' elements."
     (o
      (delete-overlay o)
      (save-excursion
-       (while (if (beacon--selective-display-ellipsis-at-point-p)
-                  (prog2 (forward-char -1)
-                         (setq o (beacon--ov-at-point))
-                         (forward-char 1))
-                (and (condition-case nil
-                       (progn (forward-char 1) t)
-                       (end-of-buffer nil))
-                     (setq o (beacon--ov-at-point))))
+       (while (and (condition-case nil
+                     (progn (forward-char 1) t)
+                     (end-of-buffer nil))
+                   ;; ov for ellipsis is on the char before it
+                   (setq o (if (beacon--selective-display-ellipsis-at-point-p)
+                               (beacon--ov-at-point (1- (point)))
+                             (beacon--ov-at-point))))
          (cond ((beacon--selective-display-ellipsis-at-point-p)
-                (forward-char -1)
-                (let* ((after-string-ov (save-excursion (end-of-visual-line) (beacon--ov-at-point)))
-                       (colors (when after-string-ov (overlay-get after-string-ov 'beacon-colors)))
-                       (before-string (overlay-get o 'before-string))
-                       (ellipsis-face (overlay-get o 'face)))
-                  (put-text-property 0 (length before-string) 'face ellipsis-face before-string)
-                  (forward-char 1)
-                  (if (not colors)
-                      (beacon--selective-display-restore-face-at-point)
-                    (beacon--ov-put-after-string after-string-ov (cdr colors)))
-                  (end-of-visual-line)))
-               ((when-let* ((before-string (overlay-get o 'before-string))
-                            (ellipsis-face (overlay-get o 'face)))
-                 (move-overlay
-                   (beacon--make-overlay 1
-                     'face (get-text-property 0 'face before-string))
-                   (1- (point)) (point))
-                 (put-text-property 0 (length before-string) 'face nil before-string)
-                 (end-of-visual-line)
-                 (goto-char (beacon--prev-glyph))
-                 t))
-               ((when-let ((colors (overlay-get o 'beacon-colors)))
-                 (forward-char -1)
-                 (beacon--colored-overlay (pop colors))
-                 (beacon--ov-put-after-string o colors)
-                 (forward-char 1)
-                 t))
-               (t (move-overlay o (1- (point)) (point)))))))))
+                (beacon--toss-on-ellipsis o))
+               ((overlay-get o 'before-string)
+                (beacon--toss-pre-ellipsis o))
+               ((overlay-get o 'beacon-colors)
+                (beacon--toss-after-string o))
+               (t (beacon--toss o))))))))
 
 ;;;###autoload
 (defun beacon-blink ()
