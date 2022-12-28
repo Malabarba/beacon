@@ -464,7 +464,8 @@ unreliable, so just blink immediately."
 
 ;;;###autoload
 (define-minor-mode beacon-mode
-  nil nil beacon-lighter nil
+  nil
+  :lighter beacon-lighter
   :global t
   (if beacon-mode
       (progn
