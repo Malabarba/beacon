@@ -412,31 +412,6 @@ The same is true for DELTA-X and horizonta movement."
                  (not (equal head beacon--previous-place)))
         (push-mark beacon--previous-place 'silent)))))
 
-;;(defun beacon--post-command ()
-;;  "Blink if point moved very far."
-;;  (cond
-;;   ;; Sanity check.
-;;   ((not (markerp beacon--previous-place)))
-;;   ;; Blink for switching buffers.
-;;   ((and beacon-blink-when-buffer-changes
-;;         (not (eq (marker-buffer beacon--previous-place)
-;;                  (current-buffer))))
-;;    (beacon-blink-automated))
-;;   ;; Blink for switching windows.
-;;   ((and beacon-blink-when-window-changes
-;;         (not (eq beacon--previous-window (selected-window))))
-;;    (beacon-blink-automated))
-;;   ;; Blink for scrolling.
-;;   ((and beacon--window-scrolled
-;;         (equal beacon--window-scrolled (selected-window)))
-;;    (beacon-blink-automated))
-;;   ;; Blink for movement
-;;   ((beacon--movement-> beacon-blink-when-point-moves-vertically
-;;                  beacon-blink-when-point-moves-horizontally)
-;;    (beacon-blink-automated)))
-;;  (beacon--maybe-push-mark)
-;;  (setq beacon--window-scrolled nil))
-
 (defun beacon--post-command ()
   "Check if point has moved far and call `beacon-blink-automated'.
 
