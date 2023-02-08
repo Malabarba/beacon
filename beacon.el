@@ -438,37 +438,42 @@ The same is true for DELTA-X and horizonta movement."
 ;;  (setq beacon--window-scrolled nil))
 
 (defun beacon--post-command ()
-"Blink if point moved very far."
-(cond
-;; Sanity check.
-((not (markerp beacon--previous-place)))
-;; Blink for switching buffers.
-((and beacon-blink-when-buffer-changes
-(not (eq (marker-buffer beacon--previous-place)
-(current-buffer))))
-(beacon-blink-automated))
-;; Blink for switching windows.
-((and beacon-blink-when-window-changes
-(not (eq beacon--previous-window (selected-window))))
-(beacon-blink-automated))
-;; Blink for scrolling.
-((and beacon--window-scrolled
-(equal beacon--window-scrolled (selected-window)))
-(beacon-blink-automated))
-;; Blink for movement
-((or (beacon--movement-> beacon-blink-when-point-moves-vertically
-beacon-blink-when-point-moves-horizontally)
-(and beacon-blink-when-point-moves-vertically
-(beacon--vertical-movement->)))
-(beacon-blink-automated)))
-(beacon--maybe-push-mark)
-(setq beacon--window-scrolled nil))
+  "Check if point has moved far and call `beacon-blink-automated'.
+
+The distance is determined by values of `beacon-blink-when-buffer-changes',
+`beacon-blink-when-window-changes', `beacon-blink-when-point-moves-vertically'"
+  (cond
+   ;; Sanity check.
+   ((not (markerp beacon--previous-place)))
+   ;; Blink for switching buffers.
+   ((and beacon-blink-when-buffer-changes
+         (not (eq (marker-buffer beacon--previous-place)
+                  (current-buffer))))
+    (beacon-blink-automated))
+   ;; Blink for switching windows.
+   ((and beacon-blink-when-window-changes
+         (not (eq beacon--previous-window (selected-window))))
+    (beacon-blink-automated))
+   ;; Blink for scrolling.
+   ((and beacon--window-scrolled
+         (equal beacon--window-scrolled (selected-window)))
+    (beacon-blink-automated))
+   ;; Blink for movement
+   ((or (beacon--movement-> beacon-blink-when-point-moves-vertically
+                            beacon-blink-when-point-moves-horizontally)
+        (and beacon-blink-when-point-moves-vertically
+             (beacon--vertical-movement->)))
+    (beacon-blink-automated)))
+  (beacon--maybe-push-mark)
+  (setq beacon--window-scrolled nil))
 
 (defun beacon--vertical-movement-> ()
-"Check if point has moved vertically."
-(let ((previous-line (line-number-at-pos beacon--previous-place))
-(current-line (line-number-at-pos (point))))
-(not (equal previous-line current-line))))
+  "Check if point has moved vertically.
+
+Compares line numbers of previous and current position."
+  (let ((previous-line (line-number-at-pos beacon--previous-place))
+        (current-line (line-number-at-pos (point))))
+    (not (equal previous-line current-line))))
 
 (defun beacon--window-scroll-function (window start-pos)
   "Blink the beacon or record that WINDOW has been scrolled.
