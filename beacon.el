@@ -495,8 +495,8 @@ unreliable, so just blink immediately."
 ;;; Minor-mode
 (defcustom beacon-lighter
   (cond
-    ((char-displayable-p ?💡) " 💡")
-    ((char-displayable-p ?Λ) " Λ")
+    ;;((char-displayable-p ?💡) " 💡")
+    ;;((char-displayable-p ?Λ) " Λ")
    (t " (*)"))
   "Lighter string used on the mode-line."
   :type 'string)
