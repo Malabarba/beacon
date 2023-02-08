@@ -166,8 +166,9 @@ one of the major-modes on this list, the beacon will not
 blink."
   :type '(repeat symbol))
 
-(defcustom beacon-dont-blink-commands '(next-line previous-line
-                                            forward-line)
+(defcustom beacon-dont-blink-commands '()
+                                        ;;next-line previous-line
+                                            ;;forward-line)
   "A list of commands that should not make the beacon blink.
 Use this for commands that scroll the window in very
 predictable ways, when the blink would be more distracting
@@ -412,30 +413,63 @@ The same is true for DELTA-X and horizonta movement."
                  (not (equal head beacon--previous-place)))
         (push-mark beacon--previous-place 'silent)))))
 
+;;(defun beacon--post-command ()
+;;  "Blink if point moved very far."
+;;  (cond
+;;   ;; Sanity check.
+;;   ((not (markerp beacon--previous-place)))
+;;   ;; Blink for switching buffers.
+;;   ((and beacon-blink-when-buffer-changes
+;;         (not (eq (marker-buffer beacon--previous-place)
+;;                  (current-buffer))))
+;;    (beacon-blink-automated))
+;;   ;; Blink for switching windows.
+;;   ((and beacon-blink-when-window-changes
+;;         (not (eq beacon--previous-window (selected-window))))
+;;    (beacon-blink-automated))
+;;   ;; Blink for scrolling.
+;;   ((and beacon--window-scrolled
+;;         (equal beacon--window-scrolled (selected-window)))
+;;    (beacon-blink-automated))
+;;   ;; Blink for movement
+;;   ((beacon--movement-> beacon-blink-when-point-moves-vertically
+;;                  beacon-blink-when-point-moves-horizontally)
+;;    (beacon-blink-automated)))
+;;  (beacon--maybe-push-mark)
+;;  (setq beacon--window-scrolled nil))
+
 (defun beacon--post-command ()
-  "Blink if point moved very far."
-  (cond
-   ;; Sanity check.
-   ((not (markerp beacon--previous-place)))
-   ;; Blink for switching buffers.
-   ((and beacon-blink-when-buffer-changes
-         (not (eq (marker-buffer beacon--previous-place)
-                  (current-buffer))))
-    (beacon-blink-automated))
-   ;; Blink for switching windows.
-   ((and beacon-blink-when-window-changes
-         (not (eq beacon--previous-window (selected-window))))
-    (beacon-blink-automated))
-   ;; Blink for scrolling.
-   ((and beacon--window-scrolled
-         (equal beacon--window-scrolled (selected-window)))
-    (beacon-blink-automated))
-   ;; Blink for movement
-   ((beacon--movement-> beacon-blink-when-point-moves-vertically
-                  beacon-blink-when-point-moves-horizontally)
-    (beacon-blink-automated)))
-  (beacon--maybe-push-mark)
-  (setq beacon--window-scrolled nil))
+"Blink if point moved very far."
+(cond
+;; Sanity check.
+((not (markerp beacon--previous-place)))
+;; Blink for switching buffers.
+((and beacon-blink-when-buffer-changes
+(not (eq (marker-buffer beacon--previous-place)
+(current-buffer))))
+(beacon-blink-automated))
+;; Blink for switching windows.
+((and beacon-blink-when-window-changes
+(not (eq beacon--previous-window (selected-window))))
+(beacon-blink-automated))
+;; Blink for scrolling.
+((and beacon--window-scrolled
+(equal beacon--window-scrolled (selected-window)))
+(beacon-blink-automated))
+;; Blink for movement
+((or (beacon--movement-> beacon-blink-when-point-moves-vertically
+beacon-blink-when-point-moves-horizontally)
+(and beacon-blink-when-point-moves-vertically
+(beacon--vertical-movement->)))
+(beacon-blink-automated)))
+(beacon--maybe-push-mark)
+(setq beacon--window-scrolled nil))
+
+(defun beacon--vertical-movement-> ()
+"Check if point has moved vertically."
+(let ((previous-line (line-number-at-pos beacon--previous-place))
+(current-line (line-number-at-pos (point))))
+(not (equal previous-line current-line))))
 
 (defun beacon--window-scroll-function (window start-pos)
   "Blink the beacon or record that WINDOW has been scrolled.
@@ -459,12 +493,11 @@ unreliable, so just blink immediately."
   (when beacon-blink-when-focused
     (beacon-blink-automated)))
 
-
 ;;; Minor-mode
 (defcustom beacon-lighter
   (cond
-   ;; ((char-displayable-p ?💡) " 💡")
-   ;; ((char-displayable-p ?Λ) " Λ")
+    ((char-displayable-p ?💡) " 💡")
+    ((char-displayable-p ?Λ) " Λ")
    (t " (*)"))
   "Lighter string used on the mode-line."
   :type 'string)

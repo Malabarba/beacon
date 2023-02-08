@@ -1,5 +1,10 @@
 #+TITLE: Beacon --- Never lose your cursor again
 
+I forked and updated this as multiple functionalities of the package were not
+working out of the box. I fixed issues on for running on M1 macs where the
+cursor wouldn't blink for vertical movements or window changes. This repository
+is not in ELPA or MELPA and would require installing this locally.
+
 This is a global minor-mode.  Turn it on everywhere with:
 #+BEGIN_SRC emacs-lisp
 (beacon-mode 1)
@@ -35,7 +40,8 @@ That’s it.
   distance. For this, configure ~beacon-push-mark~.
 
 ** Contributors
-
+ 
 - [[https://github.com/tsdh][Tassilo Horn]]
+- [[https://www.github.com/antonhibl][Anton Hibl]]
 
-If you’d like to help too, just open a PR.
+If you’d like to help too, just open a PR or a fork.
