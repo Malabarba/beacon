@@ -413,7 +413,10 @@ The same is true for DELTA-X and horizonta movement."
         (push-mark beacon--previous-place 'silent)))))
 
 (defun beacon--post-command ()
-  "Blink if point moved very far."
+  "Check if point has moved far and call `beacon-blink-automated'.
+
+The distance is determined by values of `beacon-blink-when-buffer-changes',
+`beacon-blink-when-window-changes', `beacon-blink-when-point-moves-vertically'"
   (cond
    ;; Sanity check.
    ((not (markerp beacon--previous-place)))
@@ -431,11 +434,21 @@ The same is true for DELTA-X and horizonta movement."
          (equal beacon--window-scrolled (selected-window)))
     (beacon-blink-automated))
    ;; Blink for movement
-   ((beacon--movement-> beacon-blink-when-point-moves-vertically
-                  beacon-blink-when-point-moves-horizontally)
+   ((or (beacon--movement-> beacon-blink-when-point-moves-vertically
+                            beacon-blink-when-point-moves-horizontally)
+        (and beacon-blink-when-point-moves-vertically
+             (beacon--vertical-movement->)))
     (beacon-blink-automated)))
   (beacon--maybe-push-mark)
   (setq beacon--window-scrolled nil))
+
+(defun beacon--vertical-movement-> ()
+  "Check if point has moved vertically.
+
+Compares line numbers of previous and current position."
+  (let ((previous-line (line-number-at-pos beacon--previous-place))
+        (current-line (line-number-at-pos (point))))
+    (not (equal previous-line current-line))))
 
 (defun beacon--window-scroll-function (window start-pos)
   "Blink the beacon or record that WINDOW has been scrolled.
@@ -459,12 +472,11 @@ unreliable, so just blink immediately."
   (when beacon-blink-when-focused
     (beacon-blink-automated)))
 
-
 ;;; Minor-mode
 (defcustom beacon-lighter
   (cond
-   ;; ((char-displayable-p ?💡) " 💡")
-   ;; ((char-displayable-p ?Λ) " Λ")
+    ;;((char-displayable-p ?💡) " 💡")
+    ;;((char-displayable-p ?Λ) " Λ")
    (t " (*)"))
   "Lighter string used on the mode-line."
   :type 'string)
