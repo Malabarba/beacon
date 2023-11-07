@@ -378,7 +378,8 @@ variables: `beacon-mode', `beacon-dont-blink-commands',
   "Return non-nil if latest vertical movement is > DELTA-Y.
 If DELTA-Y is nil, return nil.
 The same is true for DELTA-X and horizonta movement."
-  (and delta-y
+
+  (and (numberp delta-y)
        (markerp beacon--previous-place)
        (equal (marker-buffer beacon--previous-place)
               (current-buffer))
@@ -387,7 +388,7 @@ The same is true for DELTA-X and horizonta movement."
        (> (abs (- (point) beacon--previous-place))
           delta-y)
        ;; Col movement.
-       (or (and delta-x
+       (or (and (numberp delta-x)
                 (> (abs (- (current-column)
                            (save-excursion
                              (goto-char beacon--previous-place)
