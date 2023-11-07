@@ -481,6 +481,18 @@ unreliable, so just blink immediately."
   :global t
   (if beacon-mode
       (progn
+        ;; Fail when misconfigured.
+        (when (and beacon-blink-when-point-moves-horizontally
+                   (not (numberp beacon-blink-when-point-moves-horizontally)))
+          (user-error
+           "When non-nil, beacon-blink-when-point-moves-horizontally is not an integer: %s"
+           beacon-blink-when-point-moves-horizontally))
+        (when (and beacon-blink-when-point-moves-vertically
+                   (not (numberp beacon-blink-when-point-moves-vertically)))
+          (user-error
+           "When non-nil, beacon-blink-when-point-moves-vertically is not an integer: %s"
+           beacon-blink-when-point-moves-vertically))
+
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
         (add-function :after after-focus-change-function
                       #'beacon--blink-on-focus)
