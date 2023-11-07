@@ -378,7 +378,13 @@ variables: `beacon-mode', `beacon-dont-blink-commands',
   "Return non-nil if latest vertical movement is > DELTA-Y.
 If DELTA-Y is nil, return nil.
 The same is true for DELTA-X and horizonta movement."
-  (and delta-y
+
+  (when (and delta-y (not (numberp delta-y)))
+    (warn "beacon-blink-when-point-moves-vertically is not an integer."))
+  (when (and delta-x (not (numberp delta-x)))
+    (warn "beacon-blink-when-point-moves-horizontally is not an integer."))
+
+  (and (numberp delta-y)
        (markerp beacon--previous-place)
        (equal (marker-buffer beacon--previous-place)
               (current-buffer))
@@ -387,7 +393,7 @@ The same is true for DELTA-X and horizonta movement."
        (> (abs (- (point) beacon--previous-place))
           delta-y)
        ;; Col movement.
-       (or (and delta-x
+       (or (and (numberp delta-x)
                 (> (abs (- (current-column)
                            (save-excursion
                              (goto-char beacon--previous-place)
@@ -475,6 +481,18 @@ unreliable, so just blink immediately."
   :global t
   (if beacon-mode
       (progn
+        ;; Fail when misconfigured.
+        (when (and beacon-blink-when-point-moves-horizontally
+                   (not (numberp beacon-blink-when-point-moves-horizontally)))
+          (user-error
+           "When non-nil, beacon-blink-when-point-moves-horizontally is not an integer: %s"
+           beacon-blink-when-point-moves-horizontally))
+        (when (and beacon-blink-when-point-moves-vertically
+                   (not (numberp beacon-blink-when-point-moves-vertically)))
+          (user-error
+           "When non-nil, beacon-blink-when-point-moves-vertically is not an integer: %s"
+           beacon-blink-when-point-moves-vertically))
+
         (add-hook 'window-scroll-functions #'beacon--window-scroll-function)
         (add-function :after after-focus-change-function
                       #'beacon--blink-on-focus)
