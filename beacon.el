@@ -379,6 +379,11 @@ variables: `beacon-mode', `beacon-dont-blink-commands',
 If DELTA-Y is nil, return nil.
 The same is true for DELTA-X and horizonta movement."
 
+  (when (and delta-y (not (numberp delta-y)))
+    (warn "beacon-blink-when-point-moves-vertically is not an integer."))
+  (when (and delta-x (not (numberp delta-x)))
+    (warn "beacon-blink-when-point-moves-horizontally is not an integer."))
+
   (and (numberp delta-y)
        (markerp beacon--previous-place)
        (equal (marker-buffer beacon--previous-place)
